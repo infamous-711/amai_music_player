@@ -1,0 +1,17 @@
+[package]
+name = "amai-music-player"
+version = "0.1.0"
+edition = "2021"
+
+# Enable only a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimization for dependencies
+[profile.dev.package."*"]
+opt-level = 3
+
+[dependencies]
+directories = "5.0.1"
+iced = { version = "0.10.0", features = ["debug", "tokio"] }
+kira = "0.8.4"
