@@ -1,10 +1,10 @@
-use std::path::PathBuf;
+use crate::AmaiPlayer;
 use directories::UserDirs;
 use kira::{
     sound::static_sound::{StaticSoundData, StaticSoundSettings},
     tween::Tween,
 };
-use crate::AmaiPlayer;
+use std::path::PathBuf;
 
 pub fn play_track(state: &mut AmaiPlayer, index: usize) {
     if state.is_playing {
@@ -38,9 +38,7 @@ pub fn toggle_play(state: &mut AmaiPlayer) {
 
 pub fn change_volume(state: &mut AmaiPlayer, volume: f64) {
     if let Some(ref mut current_track) = &mut state.current_track {
-        current_track
-            .set_volume(volume, Tween::default())
-            .unwrap();
+        current_track.set_volume(volume, Tween::default()).unwrap();
     }
     state.current_volume = volume;
 }
@@ -48,13 +46,17 @@ pub fn change_volume(state: &mut AmaiPlayer, volume: f64) {
 pub fn get_music_list() -> Vec<PathBuf> {
     let user_dirs = UserDirs::new().unwrap();
     let music_dir = user_dirs.audio_dir().unwrap();
-    let Ok(entries) = music_dir.read_dir() else { return Vec::new() };
+    let Ok(entries) = music_dir.read_dir() else {
+        return Vec::new();
+    };
 
     entries
         .filter(|entry| {
             let Ok(entry) = entry else { return false };
             let path = entry.path();
-            let Some(ext) = path.extension() else { return false };
+            let Some(ext) = path.extension() else {
+                return false;
+            };
 
             ext == "mp4" || ext == "ogg"
         })
