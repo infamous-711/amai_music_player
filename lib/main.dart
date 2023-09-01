@@ -28,7 +28,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Providers
 class MusicHome extends ConsumerWidget {
   const MusicHome({super.key});
 
