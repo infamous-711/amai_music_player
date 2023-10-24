@@ -56,12 +56,15 @@ class MusicHome extends ConsumerWidget {
           ),
         ],
       ),
-      body: const Column(
+      body: Column(
         children: [
-          Expanded(
-            child: MusicList(),
+          const Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: MusicList(),
+            ),
           ),
-          Column(
+          const Column(
             children: [MusicName(), MusicControls()],
           ),
         ],
