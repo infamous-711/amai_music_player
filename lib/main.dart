@@ -8,11 +8,11 @@ const seedColor = Colors.cyan;
 
 void main() => runApp(const ProviderScope(child: MyApp()));
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
       home: const MusicHome(),
       theme: ThemeData(
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(
             seedColor: seedColor, brightness: Brightness.dark),
       ),
-      themeMode: ThemeMode.dark,
+      themeMode: ref.watch(themeModeProvider),
     );
   }
 }
@@ -36,7 +36,24 @@ class MusicHome extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Amai Music Player'),
+        title: const Text("Amai Music Player"),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              children: [
+                searchMusicBar(),
+                IconButton(
+                  icon: Icon(ref.watch(themeModeIconProvider)),
+                  onPressed: () => ref.read(themeModeProvider.notifier).update(
+                      (theme) => theme == ThemeMode.dark
+                          ? ThemeMode.light
+                          : ThemeMode.dark),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       body: const Column(
         children: [

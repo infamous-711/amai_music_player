@@ -49,3 +49,8 @@ final musicFilesProvider = StateProvider((ref) {
 
 final searchInputProvider = StateProvider((ref) => "");
 
+final themeModeProvider = StateProvider((ref) => ThemeMode.dark);
+final themeModeIconProvider = StateProvider((ref) =>
+    ref.watch(themeModeProvider) == ThemeMode.dark
+        ? Icons.dark_mode
+        : Icons.light_mode);
