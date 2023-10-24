@@ -300,6 +300,9 @@ class MusicList extends ConsumerWidget {
           selected: trackIndex == index,
           selectedColor: Theme.of(context).colorScheme.onPrimary,
           selectedTileColor: Theme.of(context).colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         );
       },
     );
