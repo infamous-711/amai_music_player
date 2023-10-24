@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:path/path.dart' as path;
-import 'dart:io';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'providers.dart';
+import 'audio.dart';
 
-void main() => runApp(const MyApp());
+const seedColor = Colors.cyan;
+
+void main() => runApp(const ProviderScope(child: MyApp()));
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -14,201 +16,227 @@ class MyApp extends StatelessWidget {
       home: const MusicHome(),
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: seedColor),
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepPurple, brightness: Brightness.dark),
+            seedColor: seedColor, brightness: Brightness.dark),
       ),
       themeMode: ThemeMode.dark,
     );
   }
 }
 
-IconData getVolumeIcon(double volume) {
-  if (volume >= 0.5) {
-    return Icons.volume_up_rounded;
-  } else if (volume < 0.5 && volume != 0.0) {
-    return Icons.volume_down_rounded;
-  } else {
-    return Icons.volume_off_rounded;
-  }
-}
-
-class MusicHome extends StatefulWidget {
+class MusicHome extends ConsumerWidget {
   const MusicHome({super.key});
 
   @override
-  MusicHomeState createState() => MusicHomeState();
-}
-
-class MusicHomeState extends State<MusicHome> {
-  // Initialize the audio player
-  AudioPlayer audioPlayer = AudioPlayer();
-
-  List<String> musicFiles = []; // List to store the paths of music files
-  double volume = 0.5; // Volume of the music (0.0 to 1.0)
-  int currentPlayingIndex =
-      -1; // Initialize to -1 to indicate no music is playing
-  String musicName = "";
-  Duration audioDuration = const Duration();
-  Duration currentPosition = const Duration();
-
-  @override
-  void initState() {
-    super.initState();
-    audioPlayer.setVolume(volume);
-    loadMusicFiles();
-  }
-
-  void playMusic(List<String> musicFiles, int index) {
-    setState(() => currentPlayingIndex = index);
-
-    String musicPath = musicFiles[index];
-    audioPlayer.play(DeviceFileSource(musicPath));
-    musicName = musicFiles[index].split('/').last;
-
-    audioPlayer.onDurationChanged.listen((Duration duration) {
-      setState(() {
-        audioDuration = duration;
-      });
-    });
-
-    audioPlayer.onPositionChanged.listen((Duration position) {
-      setState(() {
-        currentPosition = position;
-      });
-    });
-  }
-
-  void playPrevious(List<String> musicFiles) {
-    int index = currentPlayingIndex;
-    if (index != 0) {
-      index -= 1;
-    }
-    playMusic(musicFiles, index);
-  }
-
-  void playNext(List<String> musicFiles) {
-    int index = currentPlayingIndex;
-    if ((musicFiles.length - 1) != index) {
-      index += 1;
-    }
-    playMusic(musicFiles, index);
-  }
-
-  void toggleMusic() {
-    if (audioPlayer.state == PlayerState.playing) {
-      audioPlayer.pause();
-    } else {
-      audioPlayer.resume();
-    }
-  }
-
-  IconData getPlaybuttonIcon() {
-    if (audioPlayer.state == PlayerState.playing) {
-      return Icons.pause_outlined;
-    } else {
-      return Icons.play_arrow;
-    }
-  }
-
-  String getMusicDirectory() {
-    if (Platform.isLinux) {
-      String homeDir = path.join('/home', Platform.environment['USER']);
-      String musicDir = path.join(homeDir, 'Music');
-      return musicDir;
-    } else {
-      // TODO: Handle other platforms (Windows, macOS)
-      return '';
-    }
-  }
-
-  void loadMusicFiles() async {
-    String musicDir = getMusicDirectory(); // Get the external storage directory
-
-    setState(() {
-      musicFiles = Directory(musicDir)
-          .listSync()
-          .where((file) =>
-              file.path.endsWith('.mp3') || file.path.endsWith('.ogg'))
-          .map((file) => file.path)
-          .toList();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final musicList = Expanded(
-      child: ListView.builder(
-        itemCount: musicFiles.length,
-        itemBuilder: (context, index) {
-          String titleName = musicFiles[index].split('/').last;
-          return ListTile(
-            title: Text(titleName),
-            onTap: () {
-              playMusic(musicFiles, index);
-            },
-            selected: currentPlayingIndex == index,
-            selectedColor: Theme.of(context).colorScheme.onPrimary,
-            selectedTileColor: Theme.of(context).colorScheme.primary,
-          );
-        },
-      ),
-    );
-
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Amai Music Player'),
       ),
-      body: Column(
+      body: const Column(
         children: [
-          musicList,
+          Expanded(
+            child: MusicList(),
+          ),
           Column(
-            children: [
-              Text(musicName, overflow: TextOverflow.fade),
-              Row(children: [
-                IconButton(
-                    icon: const Icon(Icons.skip_previous),
-                    onPressed: () => playPrevious(musicFiles)),
-                IconButton(
-                    icon: Icon(getPlaybuttonIcon()),
-                    onPressed: () => toggleMusic()),
-                IconButton(
-                    icon: const Icon(Icons.skip_next),
-                    onPressed: () => playNext(musicFiles)),
-                const SizedBox(width: 10),
-                Text(
-                    '${currentPosition.inMinutes}:${currentPosition.inSeconds - (currentPosition.inMinutes * 60)}/${audioDuration.inMinutes}:${audioDuration.inSeconds - (audioDuration.inMinutes * 60)}'),
-                Expanded(
-                    child: Slider(
-                  min: 0.0,
-                  max: audioDuration.inMilliseconds.toDouble(),
-                  value: currentPosition.inMilliseconds.toDouble(),
-                  onChanged: (newPosition) {
-                    setState(() {
-                      audioPlayer
-                          .seek(Duration(milliseconds: newPosition.toInt()));
-                    });
-                  },
-                )),
-                Icon(getVolumeIcon(volume)),
-                Slider(
-                    value: volume,
-                    onChanged: (newVolume) {
-                      setState(() {
-                        volume = newVolume;
-                        audioPlayer.setVolume(volume);
-                      });
-                    },
-                    max: 1.0,
-                    min: 0.0),
-              ]),
-            ],
+            children: [MusicName(), MusicControls()],
           ),
         ],
       ),
+    );
+  }
+}
+
+class MusicName extends ConsumerWidget {
+  const MusicName({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final musicName = ref.watch(musicNameProvider);
+
+    return Text(musicName, overflow: TextOverflow.fade);
+  }
+}
+
+class MusicControls extends ConsumerWidget {
+  const MusicControls({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return const Row(children: [
+      PlayPrevious(),
+      PlayButton(),
+      PlayNext(),
+      SizedBox(width: 10),
+      MusicProgress(),
+      Expanded(child: PositionSlider()),
+      VolumeSlider(),
+    ]);
+  }
+}
+
+class PlayButton extends ConsumerWidget {
+  const PlayButton({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final audioPlayer = ref.watch(audioPlayerProvider);
+
+    return IconButton(
+      icon: Icon(ref.watch(playButtonIconProvider)),
+      onPressed: () => ref.read(isPlayingProvider.notifier).update((isPlaying) {
+        isPlaying ? audioPlayer.pause() : audioPlayer.resume();
+        return !isPlaying;
+      }),
+    );
+  }
+}
+
+class PlayNext extends ConsumerWidget {
+  const PlayNext({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final musicFiles = ref.watch(musicFilesProvider);
+
+    return IconButton(
+      icon: const Icon(Icons.skip_next),
+      onPressed: () => ref.read(indexProvider.notifier).update((state) {
+        int index = state;
+        if ((musicFiles.length - 1) != state && state > 0) {
+          index += 1;
+          playMusic(ref, musicFiles, index);
+        }
+        return index;
+      }),
+    );
+  }
+}
+
+class PlayPrevious extends ConsumerWidget {
+  const PlayPrevious({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final musicFiles = ref.watch(musicFilesProvider);
+
+    return IconButton(
+      icon: const Icon(Icons.skip_previous),
+      onPressed: () => ref.read(indexProvider.notifier).update((state) {
+        int index = state;
+        if (index > 0) {
+          index -= 1;
+          playMusic(ref, musicFiles, index);
+        }
+        return index;
+      }),
+    );
+  }
+}
+
+class VolumeSlider extends ConsumerWidget {
+  const VolumeSlider({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final volume = ref.watch(volumeProvider);
+
+    return Row(children: [
+      Icon(ref.watch(volumeIconProvider)),
+      Slider(
+          value: volume,
+          onChanged: (newVolume) =>
+              ref.watch(volumeProvider.notifier).update((state) {
+                ref.read(audioPlayerProvider).setVolume(newVolume);
+                return newVolume;
+              }),
+          max: 1.0,
+          min: 0.0),
+    ]);
+  }
+}
+
+class PositionSlider extends ConsumerWidget {
+  const PositionSlider({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final audioPlayer = ref.watch(audioPlayerProvider);
+    final currentPosition = ref.watch(positionProvider);
+    final audioDuration = ref.watch(durationProvider);
+
+    return Slider(
+      min: 0.0,
+      max: audioDuration.inMilliseconds.toDouble(),
+      value: currentPosition.inMilliseconds.toDouble(),
+      onChanged: (newPosition) {
+        final position = Duration(milliseconds: newPosition.toInt());
+        audioPlayer.seek(position);
+        ref.read(positionProvider.notifier).update((_) => position);
+      },
+    );
+  }
+}
+
+class MusicProgress extends ConsumerWidget {
+  const MusicProgress({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentPosition = ref.watch(positionProvider);
+    final audioDuration = ref.watch(durationProvider);
+
+    return Text(
+        '${currentPosition.inMinutes}:${currentPosition.inSeconds - (currentPosition.inMinutes * 60)}'
+        '/${audioDuration.inMinutes}:${audioDuration.inSeconds - (audioDuration.inMinutes * 60)}');
+  }
+}
+
+class MusicList extends ConsumerWidget {
+  const MusicList({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final musicFiles = ref.watch(musicFilesProvider);
+    final index = ref.watch(indexProvider);
+
+    return ListView.builder(
+      itemCount: musicFiles.length,
+      itemBuilder: (context, trackIndex) {
+        String titleName = musicFiles[trackIndex].split('/').last;
+        return ListTile(
+          title: Text(titleName),
+          onTap: () {
+            ref.watch(musicNameProvider.notifier).update((_) => titleName);
+            playMusic(ref, musicFiles, trackIndex);
+          },
+          selected: trackIndex == index,
+          selectedColor: Theme.of(context).colorScheme.onPrimary,
+          selectedTileColor: Theme.of(context).colorScheme.primary,
+        );
+      },
     );
   }
 }
