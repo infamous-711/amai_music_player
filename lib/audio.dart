@@ -46,17 +46,16 @@ void playMusic(WidgetRef ref, List<String> musicFiles, int index) {
 
 String getMusicDirectory() {
   if (Platform.isLinux) {
-    String homeDir = path.join('/home', Platform.environment['USER']);
-    String musicDir = path.join(homeDir, 'Music');
-    return musicDir;
+    return path.join(Platform.environment['HOME'] ?? '', 'Music');
+  } else if (Platform.isWindows) {
+    return path.join(Platform.environment['USERPROFILE'] ?? '', 'Music');
   } else {
-    // TODO: Handle other platforms (Windows, macOS)
+    // TODO: implement for other platforms (Mac, android, ios)
     return '';
   }
 }
 
 List<String> loadMusicFiles() {
-  String musicDir = getMusicDirectory(); // Get the external storage directory
   String musicDir = getMusicDirectory(); // Get the music directory
 
   return Directory(musicDir)
