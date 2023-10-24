@@ -226,7 +226,20 @@ class VolumeSlider extends ConsumerWidget {
     final volume = ref.watch(volumeProvider);
 
     return Row(children: [
-      Icon(ref.watch(volumeIconProvider)),
+      IconButton(
+          icon: Icon(ref.watch(volumeIconProvider)),
+          onPressed: () => ref.watch(volumeProvider.notifier).update((state) {
+                var newVolume =
+                    1.0; // if it is mute, restore the volume to its full capacity
+
+                // mute the volume if it is not already
+                if (state > 0.0) {
+                  newVolume = 0.0;
+                }
+
+                ref.read(audioPlayerProvider).setVolume(newVolume);
+                return newVolume;
+              })),
       Slider(
           value: volume,
           onChanged: (newVolume) =>
