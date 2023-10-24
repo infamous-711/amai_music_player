@@ -46,6 +46,13 @@ final musicFilesProvider = StateProvider((ref) {
   }
 });
 
+final repeatMusicProvider = StateProvider((ref) => false);
+final repeatIconProvider = StateProvider((ref) => ref.watch(repeatMusicProvider)
+    ? Icons.repeat_one_on_outlined
+    : Icons.repeat_one_rounded);
+
+
+final musicFinishedProvider = StateProvider((ref) => false);
 
 final searchInputProvider = StateProvider((ref) => "");
 

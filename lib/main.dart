@@ -111,8 +111,24 @@ class MusicControls extends ConsumerWidget {
       SizedBox(width: 10),
       MusicProgress(),
       Expanded(child: PositionSlider()),
+      RepeatButton(),
       VolumeSlider(),
     ]);
+  }
+}
+
+class RepeatButton extends ConsumerWidget {
+  const RepeatButton({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return IconButton(
+      icon: Icon(ref.watch(repeatIconProvider)),
+      onPressed: () =>
+          ref.read(repeatMusicProvider.notifier).update((repeat) => !repeat),
+    );
   }
 }
 
