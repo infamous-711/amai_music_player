@@ -225,11 +225,11 @@ class MusicList extends ConsumerWidget {
     return ListView.builder(
       itemCount: musicFiles.length,
       itemBuilder: (context, trackIndex) {
-        String titleName = musicFiles[trackIndex].split('/').last;
+        String titleName =
+            path.basenameWithoutExtension(musicFiles[trackIndex]);
         return ListTile(
           title: Text(titleName),
           onTap: () {
-            ref.watch(musicNameProvider.notifier).update((_) => titleName);
             playMusic(ref, musicFiles, trackIndex);
           },
           selected: trackIndex == index,

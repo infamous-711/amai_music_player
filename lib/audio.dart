@@ -21,7 +21,7 @@ void playMusic(WidgetRef ref, List<String> musicFiles, int index) {
   ref.watch(isPlayingProvider.notifier).update((_) => true);
   ref
       .watch(musicNameProvider.notifier)
-      .update((_) => musicFiles[index].split('/').last);
+      .update((_) => path.basenameWithoutExtension(musicFiles[index]));
 
   audioPlayer.onDurationChanged.listen((Duration duration) {
     ref.watch(durationProvider.notifier).state = duration;
@@ -45,6 +45,7 @@ String getMusicDirectory() {
 
 List<String> loadMusicFiles() {
   String musicDir = getMusicDirectory(); // Get the external storage directory
+  String musicDir = getMusicDirectory(); // Get the music directory
 
   return Directory(musicDir)
       .listSync()
