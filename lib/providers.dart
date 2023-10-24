@@ -51,6 +51,11 @@ final repeatIconProvider = StateProvider((ref) => ref.watch(repeatMusicProvider)
     ? Icons.repeat_one_on_outlined
     : Icons.repeat_one_rounded);
 
+final shuffleMusicProvider = StateProvider((ref) => false);
+final shuffleIconProvider = StateProvider((ref) =>
+    ref.watch(shuffleMusicProvider)
+        ? Icons.shuffle_on_outlined
+        : Icons.shuffle_rounded);
 
 final musicFinishedProvider = StateProvider((ref) => false);
 

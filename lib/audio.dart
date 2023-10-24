@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:path/path.dart' as path;
 import 'dart:io';
+import 'dart:math';
 import 'providers.dart';
 
 void playMusic(WidgetRef ref, List<String> musicFiles, int index) {
@@ -15,10 +16,10 @@ void playMusic(WidgetRef ref, List<String> musicFiles, int index) {
 
   ref.watch(indexProvider.notifier).update((_) => index);
 
-  String musicPath = musicFiles[index];
+  final musicPath = musicFiles[index];
   audioPlayer.play(DeviceFileSource(musicPath));
 
-  ref.watch(isPlayingProvider.notifier).update((_) => true);
+  ref.watch(isPlayingProvider.notifier).state = true;
   ref
       .watch(musicNameProvider.notifier)
       .update((_) => path.basenameWithoutExtension(musicFiles[index]));
@@ -29,6 +30,17 @@ void playMusic(WidgetRef ref, List<String> musicFiles, int index) {
 
   audioPlayer.onPositionChanged.listen((Duration position) {
     ref.watch(positionProvider.notifier).state = position;
+  });
+
+  audioPlayer.onPlayerComplete.listen((_) {
+    if (ref.watch(repeatMusicProvider)) {
+      playMusic(ref, musicFiles, index);
+    } else if (ref.watch(shuffleMusicProvider)) {
+      final randomIndex = Random().nextInt(musicFiles.length);
+      playMusic(ref, musicFiles, randomIndex);
+    }
+
+    ref.watch(musicFinishedProvider.notifier).state = true;
   });
 }
 
