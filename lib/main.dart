@@ -112,6 +112,7 @@ class MusicControls extends ConsumerWidget {
       MusicProgress(),
       Expanded(child: PositionSlider()),
       RepeatButton(),
+      ShuffleButton(),
       VolumeSlider(),
     ]);
   }
@@ -128,6 +129,21 @@ class RepeatButton extends ConsumerWidget {
       icon: Icon(ref.watch(repeatIconProvider)),
       onPressed: () =>
           ref.read(repeatMusicProvider.notifier).update((repeat) => !repeat),
+    );
+  }
+}
+
+class ShuffleButton extends ConsumerWidget {
+  const ShuffleButton({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return IconButton(
+      icon: Icon(ref.watch(shuffleIconProvider)),
+      onPressed: () =>
+          ref.read(shuffleMusicProvider.notifier).update((shuffle) => !shuffle),
     );
   }
 }
