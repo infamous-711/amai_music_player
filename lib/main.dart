@@ -52,6 +52,20 @@ class MusicHome extends ConsumerWidget {
   }
 }
 
+class searchMusicBar extends ConsumerWidget {
+  const searchMusicBar({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SearchBar(
+      hintText: "Search Music",
+      onChanged: (value) =>
+          ref.read(searchInputProvider.notifier).state = value,
+      leading: Icon(Icons.search),
+    );
+  }
+}
+
 class MusicName extends ConsumerWidget {
   const MusicName({
     super.key,

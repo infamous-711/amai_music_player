@@ -32,4 +32,20 @@ final audioPlayerProvider = Provider((ref) {
   return audioPlayer;
 });
 
-final musicFilesProvider = Provider((_) => loadMusicFiles());
+final musicFilesProvider = StateProvider((ref) {
+  final musicFiles = loadMusicFiles();
+  final searchInput = ref.watch(searchInputProvider);
+
+  if (searchInput.isEmpty) {
+    return musicFiles;
+  } else {
+    return musicFiles
+        .where((musicName) =>
+            musicName.toLowerCase().contains(searchInput.toLowerCase()))
+        .toList();
+  }
+});
+
+
+final searchInputProvider = StateProvider((ref) => "");
+
