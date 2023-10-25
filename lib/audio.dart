@@ -36,12 +36,21 @@ void playMusic(WidgetRef ref, List<String> musicFiles, int index) {
     if (ref.watch(repeatMusicProvider)) {
       playMusic(ref, musicFiles, index);
     } else if (ref.watch(shuffleMusicProvider)) {
-      final randomIndex = Random().nextInt(musicFiles.length);
+      final randomIndex = getRandomIndex(musicFiles.length, index);
       playMusic(ref, musicFiles, randomIndex);
     }
 
     ref.watch(musicFinishedProvider.notifier).state = true;
   });
+}
+
+int getRandomIndex(int length, int index) {
+  int randomIndex = Random().nextInt(length);
+  if (randomIndex == index) {
+    randomIndex = getRandomIndex(length, index);
+  }
+
+  return randomIndex;
 }
 
 String getMusicDirectory() {
