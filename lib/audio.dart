@@ -12,7 +12,7 @@ void playMusic(WidgetRef ref, List<String> musicFiles, int index) {
     ref.watch(isPlayingProvider.notifier).update((_) => false);
   }
 
-  ref.watch(indexProvider.notifier).update((_) => index);
+  ref.watch(indexProvider.notifier).state = index;
 
   final musicPath = musicFiles[index];
   audioPlayer.play(DeviceFileSource(musicPath));
