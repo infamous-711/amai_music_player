@@ -44,20 +44,11 @@ jobs:
       - name: Install rinf
         run: cargo install rinf
 
-      - name: Navigate two directories above
-        run: |
-          cd ..
-          cd ..
-        working-directory: ${{ github.workspace }}
-
-      - name: Run rinf message
-        run: rinf message
-
-      - name: Return to original working directory
-        run: cd ${{ github.workspace }}
-        
       - name: Run rust-clippy
-        run:
+        run: |
+          cd ../.. && \ # Navigate two directories above
+          rinf message && \ # Generate the messages
+          cd ${{ github.workspace }} && \
           cargo clippy
           --all-features
           --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
