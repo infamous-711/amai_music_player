@@ -1,0 +1,13 @@
+# Please see the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  - package-ecosystem: "cargo" # For rust crate updates
+    directory: "/Cargo.toml"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pub" # For dart pub updates
+    directory: "/pubspec.yaml"
+    schedule:
+      interval: "weekly"
