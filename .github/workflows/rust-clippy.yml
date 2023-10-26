@@ -44,8 +44,14 @@ jobs:
       - name: Install rinf
         run: cargo install rinf
 
+      - name: Change directory
+        run: cd ../../
+
       - name: Run rinf message
         run: rinf message
+
+      - name: Change back the directory
+        run: cd -
         
       - name: Run rust-clippy
         run:
