@@ -19,6 +19,8 @@ void playMusic(WidgetRef ref, List<String> musicFiles, int index) {
 
   ref.watch(isPlayingProvider.notifier).state = true;
 
+  ref.watch(currentTrackProvider.notifier).state = musicPath;
+
   audioPlayer.onDurationChanged.listen((Duration duration) {
     ref.watch(durationProvider.notifier).state = duration;
   });
