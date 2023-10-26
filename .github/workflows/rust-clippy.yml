@@ -41,6 +41,12 @@ jobs:
       - name: Install required cargo
         run: cargo install clippy-sarif sarif-fmt
 
+      - name: Install rinf
+        run: cargo install rinf
+
+      - name: Run rinf message
+        run: rinf message
+        
       - name: Run rust-clippy
         run:
           cargo clippy
