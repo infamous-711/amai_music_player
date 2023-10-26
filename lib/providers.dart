@@ -11,7 +11,7 @@ import 'dart:typed_data';
 final indexProvider = StateProvider((_) => -1);
 final positionProvider = StateProvider((_) => const Duration());
 final durationProvider = StateProvider((_) => const Duration());
-final musicNameProvider = StateProvider((_) => '');
+final currentTrackProvider = StateProvider((_) => '');
 
 final volumeProvider =
     StateProvider((ref) => ref.watch(audioPlayerProvider).volume);
@@ -25,10 +25,13 @@ final volumeIconProvider = Provider((ref) {
     return Icons.volume_off_rounded;
   }
 });
+
 final playButtonIconProvider = StateProvider((ref) =>
     ref.watch(isPlayingProvider) ? Icons.pause_outlined : Icons.play_arrow);
+
 final isPlayingProvider = StateProvider(
     (ref) => ref.watch(audioPlayerProvider).state == PlayerState.playing);
+
 final audioPlayerProvider = Provider((ref) {
   final audioPlayer = AudioPlayer();
 
@@ -68,7 +71,7 @@ final shuffleIconProvider = StateProvider((ref) =>
 
 final musicFinishedProvider = StateProvider((ref) => false);
 
-final searchInputProvider = StateProvider((ref) => "");
+final searchInputProvider = StateProvider((ref) => '');
 
 final themeModeProvider = StateProvider((ref) => ThemeMode.dark);
 final themeModeIconProvider = StateProvider((ref) =>
