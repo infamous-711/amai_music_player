@@ -3,10 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as path;
 import 'providers.dart';
 import 'audio.dart';
+import 'package:rinf/rinf.dart';
 
 const seedColor = Colors.cyan;
 
-void main() => runApp(const ProviderScope(child: MyApp()));
+Future<void> main() async {
+  // Wait for rust initialization to be completed first
+  await Rinf.ensureInitialized();
+
+  // run the flutter app
+  runApp(const ProviderScope(child: MyApp()));
+}
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
@@ -178,17 +185,24 @@ class PlayNext extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final musicFiles = ref.watch(musicFilesProvider);
+    final currentIndex = ref.watch(indexProvider);
 
     return IconButton(
       icon: const Icon(Icons.skip_next),
-      onPressed: () => ref.read(indexProvider.notifier).update((state) {
-        int index = state;
-        if ((musicFiles.length - 1) != state && state > 0) {
-          index += 1;
-          playMusic(ref, musicFiles, index);
+      onPressed: () {
+        switch (musicFiles) {
+          case AsyncData(:final value):
+            {
+              if ((value.length - 1) != currentIndex && currentIndex >= 0) {
+                playMusic(ref, value, currentIndex + 1);
+              }
+            }
+            break;
+
+          default:
+            return;
         }
-        return index;
-      }),
+      },
     );
   }
 }
@@ -201,17 +215,24 @@ class PlayPrevious extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final musicFiles = ref.watch(musicFilesProvider);
+    final currentIndex = ref.watch(indexProvider);
 
     return IconButton(
       icon: const Icon(Icons.skip_previous),
-      onPressed: () => ref.read(indexProvider.notifier).update((state) {
-        int index = state;
-        if (index > 0) {
-          index -= 1;
-          playMusic(ref, musicFiles, index);
+      onPressed: () {
+        switch (musicFiles) {
+          case AsyncData(:final value):
+            {
+              if (currentIndex > 0) {
+                playMusic(ref, value, currentIndex - 1);
+              }
+            }
+            break;
+
+          default:
+            return;
         }
-        return index;
-      }),
+      },
     );
   }
 }
@@ -303,24 +324,25 @@ class MusicList extends ConsumerWidget {
     final musicFiles = ref.watch(musicFilesProvider);
     final index = ref.watch(indexProvider);
 
-    return ListView.builder(
-      itemCount: musicFiles.length,
-      itemBuilder: (context, trackIndex) {
-        String titleName =
-            path.basenameWithoutExtension(musicFiles[trackIndex]);
-        return ListTile(
-          title: Text(titleName),
-          onTap: () {
-            playMusic(ref, musicFiles, trackIndex);
+    return switch (musicFiles) {
+      AsyncData(:final value) => ListView.builder(
+          itemCount: value.length,
+          itemBuilder: (context, trackIndex) {
+            String titleName = path.basenameWithoutExtension(value[trackIndex]);
+            return ListTile(
+              title: Text(titleName),
+              onTap: () => playMusic(ref, value, trackIndex),
+              selected: trackIndex == index,
+              selectedColor: Theme.of(context).colorScheme.onPrimary,
+              selectedTileColor: Theme.of(context).colorScheme.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+            );
           },
-          selected: trackIndex == index,
-          selectedColor: Theme.of(context).colorScheme.onPrimary,
-          selectedTileColor: Theme.of(context).colorScheme.primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        );
-      },
-    );
+        ),
+      AsyncError(:final error) => Text("Error: $error"),
+      _ => const CircularProgressIndicator()
+    };
   }
 }

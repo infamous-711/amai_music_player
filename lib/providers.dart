@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'audio.dart';
+import 'package:rinf/rinf.dart';
+import 'package:amai_music_player/messages/get_music_files.pb.dart'
+    as get_music_files;
 
 final indexProvider = StateProvider((_) => -1);
 final positionProvider = StateProvider((_) => const Duration());
@@ -32,18 +35,22 @@ final audioPlayerProvider = Provider((ref) {
   return audioPlayer;
 });
 
-final musicFilesProvider = StateProvider((ref) {
-  final musicFiles = loadMusicFiles();
+final musicFilesProvider = FutureProvider<List<String>>((ref) async {
+  const rustRequest = RustRequest(
+    resource: get_music_files.ID,
+    operation: RustOperation.Create,
+  );
+
+  final rustResponse = await requestToRust(rustRequest);
+  final responseMessage = get_music_files.CreateResponse.fromBuffer(
+    rustResponse.message!,
+  );
+
   final searchInput = ref.watch(searchInputProvider);
 
-  if (searchInput.isEmpty) {
-    return musicFiles;
-  } else {
-    return musicFiles
-        .where((musicName) =>
-            musicName.toLowerCase().contains(searchInput.toLowerCase()))
-        .toList();
-  }
+  return responseMessage.musicFiles
+      .where((name) => name.toLowerCase().contains(searchInput.toLowerCase()))
+      .toList();
 });
 
 final repeatMusicProvider = StateProvider((ref) => false);

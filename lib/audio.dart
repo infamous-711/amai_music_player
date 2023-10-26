@@ -52,24 +52,3 @@ int getRandomIndex(int length, int index) {
 
   return randomIndex;
 }
-
-String getMusicDirectory() {
-  if (Platform.isLinux) {
-    return path.join(Platform.environment['HOME'] ?? '', 'Music');
-  } else if (Platform.isWindows) {
-    return path.join(Platform.environment['USERPROFILE'] ?? '', 'Music');
-  } else {
-    // TODO: implement for other platforms (Mac, android, ios)
-    return '';
-  }
-}
-
-List<String> loadMusicFiles() {
-  String musicDir = getMusicDirectory(); // Get the music directory
-
-  return Directory(musicDir)
-      .listSync()
-      .where((file) => file.path.endsWith('.mp3') || file.path.endsWith('.ogg'))
-      .map((file) => file.path)
-      .toList();
-}
