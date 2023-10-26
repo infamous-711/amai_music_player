@@ -57,6 +57,7 @@ class MusicHome extends ConsumerWidget {
                       (theme) => theme == ThemeMode.dark
                           ? ThemeMode.light
                           : ThemeMode.dark),
+                  tooltip: "Toggle theme",
                 ),
               ],
             ),
@@ -238,6 +239,7 @@ class PlayButton extends ConsumerWidget {
         isPlaying ? audioPlayer.pause() : audioPlayer.resume();
         return !isPlaying;
       }),
+      tooltip: "Play",
     );
   }
 }
@@ -268,6 +270,7 @@ class PlayNext extends ConsumerWidget {
             return;
         }
       },
+      tooltip: "Play Next",
     );
   }
 }
@@ -298,6 +301,7 @@ class PlayPrevious extends ConsumerWidget {
             return;
         }
       },
+      tooltip: "Play Previous",
     );
   }
 }
@@ -327,14 +331,17 @@ class VolumeSlider extends ConsumerWidget {
                 return newVolume;
               })),
       Slider(
-          value: volume,
-          onChanged: (newVolume) =>
-              ref.watch(volumeProvider.notifier).update((state) {
-                ref.read(audioPlayerProvider).setVolume(newVolume);
-                return newVolume;
-              }),
-          max: 1.0,
-          min: 0.0),
+        value: volume,
+        onChanged: (newVolume) =>
+            ref.watch(volumeProvider.notifier).update((state) {
+          ref.read(audioPlayerProvider).setVolume(newVolume);
+          return newVolume;
+        }),
+        max: 1.0,
+        min: 0.0,
+        divisions: 20,
+        label: "${(volume * 100).round()}",
+      ),
     ]);
   }
 }
