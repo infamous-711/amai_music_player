@@ -235,13 +235,16 @@ class PlayButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final audioPlayer = ref.watch(audioPlayerProvider);
+    final isPlaying = ref.watch(isPlayingProvider.notifier);
+
+    bool togglePlay(bool isPlaying) {
+      isPlaying ? audioPlayer.pause() : audioPlayer.resume();
+      return !isPlaying;
+    }
 
     return IconButton(
       icon: Icon(ref.watch(playButtonIconProvider)),
-      onPressed: () => ref.read(isPlayingProvider.notifier).update((isPlaying) {
-        isPlaying ? audioPlayer.pause() : audioPlayer.resume();
-        return !isPlaying;
-      }),
+      onPressed: () => isPlaying.update(togglePlay),
       tooltip: "Play",
     );
   }
