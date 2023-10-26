@@ -3,10 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as path;
 import 'providers.dart';
 import 'audio.dart';
+import 'package:rinf/rinf.dart';
 
 const seedColor = Colors.cyan;
 
-void main() => runApp(const ProviderScope(child: MyApp()));
+Future<void> main() async {
+  // Wait for rust initialization to be completed first
+  await Rinf.ensureInitialized();
+
+  // run the flutter app
+  runApp(const ProviderScope(child: MyApp()));
+}
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
@@ -43,38 +50,87 @@ class MusicHome extends ConsumerWidget {
             padding: const EdgeInsets.all(8),
             child: Row(
               children: [
-                searchMusicBar(),
+                const SearchMusicBar(),
                 IconButton(
                   icon: Icon(ref.watch(themeModeIconProvider)),
                   onPressed: () => ref.read(themeModeProvider.notifier).update(
                       (theme) => theme == ThemeMode.dark
                           ? ThemeMode.light
                           : ThemeMode.dark),
+                  tooltip: "Toggle theme",
                 ),
               ],
             ),
           ),
         ],
       ),
-      body: Column(
+      body: const Column(
         children: [
-          const Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: MusicList(),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: MusicList(),
+                  ),
+                ),
+                MetadataColumn(),
+              ],
             ),
           ),
-          const Column(
-            children: [MusicName(), MusicControls()],
-          ),
+          MusicControls(),
         ],
       ),
     );
   }
 }
 
-class searchMusicBar extends ConsumerWidget {
-  const searchMusicBar({super.key});
+class MetadataColumn extends StatelessWidget {
+  const MetadataColumn({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 400),
+      child:
+          const Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        TrackArt(),
+        SizedBox(height: 50.0),
+        MusicName(),
+      ]),
+    );
+  }
+}
+
+class TrackArt extends ConsumerWidget {
+  const TrackArt({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final metadata = ref.watch(metadataProvider);
+
+    final image = switch (metadata) {
+      AsyncData(:final value) => Image.memory(value.art),
+      AsyncError(:final error) => Text("$error"),
+      _ => const CircularProgressIndicator(),
+    };
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        maxWidth: 300,
+        maxHeight: 300,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16.0),
+        child: image,
+      ),
+    );
+  }
+}
+
+class SearchMusicBar extends ConsumerWidget {
+  const SearchMusicBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -82,7 +138,7 @@ class searchMusicBar extends ConsumerWidget {
       hintText: "Search Music",
       onChanged: (value) =>
           ref.read(searchInputProvider.notifier).state = value,
-      leading: Icon(Icons.search),
+      leading: const Icon(Icons.search),
     );
   }
 }
@@ -94,30 +150,50 @@ class MusicName extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final musicName = ref.watch(musicNameProvider);
+    final name = switch (ref.watch(metadataProvider)) {
+      AsyncData(:final value) => value.title,
+      AsyncError() =>
+        path.basenameWithoutExtension(ref.watch(currentTrackProvider)),
+      _ => "",
+    };
 
-    return Text(musicName, overflow: TextOverflow.fade);
+    return Padding(
+      padding: const EdgeInsets.all(10),
+      child: Text(
+        name,
+        overflow: TextOverflow.fade,
+        style: const TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 18.0,
+        ),
+        maxLines: 5,
+        textAlign: TextAlign.center,
+      ),
+    );
   }
 }
 
-class MusicControls extends ConsumerWidget {
+class MusicControls extends StatelessWidget {
   const MusicControls({
     super.key,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return const Row(children: [
-      PlayPrevious(),
-      PlayButton(),
-      PlayNext(),
-      SizedBox(width: 10),
-      MusicProgress(),
-      Expanded(child: PositionSlider()),
-      RepeatButton(),
-      ShuffleButton(),
-      VolumeSlider(),
-    ]);
+  Widget build(BuildContext context) {
+    return Container(
+      color: Theme.of(context).colorScheme.surface,
+      child: const Row(children: [
+        PlayPrevious(),
+        PlayButton(),
+        PlayNext(),
+        SizedBox(width: 10),
+        MusicProgress(),
+        Expanded(child: PositionSlider()),
+        RepeatButton(),
+        ShuffleButton(),
+        VolumeSlider(),
+      ]),
+    );
   }
 }
 
@@ -159,13 +235,17 @@ class PlayButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final audioPlayer = ref.watch(audioPlayerProvider);
+    final isPlaying = ref.watch(isPlayingProvider.notifier);
+
+    bool togglePlay(bool isPlaying) {
+      isPlaying ? audioPlayer.pause() : audioPlayer.resume();
+      return !isPlaying;
+    }
 
     return IconButton(
       icon: Icon(ref.watch(playButtonIconProvider)),
-      onPressed: () => ref.read(isPlayingProvider.notifier).update((isPlaying) {
-        isPlaying ? audioPlayer.pause() : audioPlayer.resume();
-        return !isPlaying;
-      }),
+      onPressed: () => isPlaying.update(togglePlay),
+      tooltip: "Play",
     );
   }
 }
@@ -178,17 +258,25 @@ class PlayNext extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final musicFiles = ref.watch(musicFilesProvider);
+    final currentIndex = ref.watch(indexProvider);
 
     return IconButton(
       icon: const Icon(Icons.skip_next),
-      onPressed: () => ref.read(indexProvider.notifier).update((state) {
-        int index = state;
-        if ((musicFiles.length - 1) != state && state > 0) {
-          index += 1;
-          playMusic(ref, musicFiles, index);
+      onPressed: () {
+        switch (musicFiles) {
+          case AsyncData(:final value):
+            {
+              if ((value.length - 1) != currentIndex && currentIndex >= 0) {
+                playMusic(ref, value, currentIndex + 1);
+              }
+            }
+            break;
+
+          default:
+            return;
         }
-        return index;
-      }),
+      },
+      tooltip: "Play Next",
     );
   }
 }
@@ -201,17 +289,25 @@ class PlayPrevious extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final musicFiles = ref.watch(musicFilesProvider);
+    final currentIndex = ref.watch(indexProvider);
 
     return IconButton(
       icon: const Icon(Icons.skip_previous),
-      onPressed: () => ref.read(indexProvider.notifier).update((state) {
-        int index = state;
-        if (index > 0) {
-          index -= 1;
-          playMusic(ref, musicFiles, index);
+      onPressed: () {
+        switch (musicFiles) {
+          case AsyncData(:final value):
+            {
+              if (currentIndex > 0) {
+                playMusic(ref, value, currentIndex - 1);
+              }
+            }
+            break;
+
+          default:
+            return;
         }
-        return index;
-      }),
+      },
+      tooltip: "Play Previous",
     );
   }
 }
@@ -241,14 +337,17 @@ class VolumeSlider extends ConsumerWidget {
                 return newVolume;
               })),
       Slider(
-          value: volume,
-          onChanged: (newVolume) =>
-              ref.watch(volumeProvider.notifier).update((state) {
-                ref.read(audioPlayerProvider).setVolume(newVolume);
-                return newVolume;
-              }),
-          max: 1.0,
-          min: 0.0),
+        value: volume,
+        onChanged: (newVolume) =>
+            ref.watch(volumeProvider.notifier).update((state) {
+          ref.read(audioPlayerProvider).setVolume(newVolume);
+          return newVolume;
+        }),
+        max: 1.0,
+        min: 0.0,
+        divisions: 20,
+        label: "${(volume * 100).round()}",
+      ),
     ]);
   }
 }
@@ -303,24 +402,25 @@ class MusicList extends ConsumerWidget {
     final musicFiles = ref.watch(musicFilesProvider);
     final index = ref.watch(indexProvider);
 
-    return ListView.builder(
-      itemCount: musicFiles.length,
-      itemBuilder: (context, trackIndex) {
-        String titleName =
-            path.basenameWithoutExtension(musicFiles[trackIndex]);
-        return ListTile(
-          title: Text(titleName),
-          onTap: () {
-            playMusic(ref, musicFiles, trackIndex);
+    return switch (musicFiles) {
+      AsyncData(:final value) => ListView.builder(
+          itemCount: value.length,
+          itemBuilder: (context, trackIndex) {
+            String titleName = path.basenameWithoutExtension(value[trackIndex]);
+            return ListTile(
+              title: Text(titleName),
+              onTap: () => playMusic(ref, value, trackIndex),
+              selected: trackIndex == index,
+              selectedColor: Theme.of(context).colorScheme.onPrimary,
+              selectedTileColor: Theme.of(context).colorScheme.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+            );
           },
-          selected: trackIndex == index,
-          selectedColor: Theme.of(context).colorScheme.onPrimary,
-          selectedTileColor: Theme.of(context).colorScheme.primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        );
-      },
-    );
+        ),
+      AsyncError(:final error) => Text("Error: $error"),
+      _ => const CircularProgressIndicator()
+    };
   }
 }
