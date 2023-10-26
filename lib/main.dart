@@ -50,7 +50,7 @@ class MusicHome extends ConsumerWidget {
             padding: const EdgeInsets.all(8),
             child: Row(
               children: [
-                searchMusicBar(),
+                const SearchMusicBar(),
                 IconButton(
                   icon: Icon(ref.watch(themeModeIconProvider)),
                   onPressed: () => ref.read(themeModeProvider.notifier).update(
@@ -63,25 +63,73 @@ class MusicHome extends ConsumerWidget {
           ),
         ],
       ),
-      body: Column(
+      body: const Column(
         children: [
-          const Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: MusicList(),
+          Expanded(
+            child: Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: MusicList(),
+                  ),
+                ),
+                MetadataColumn(),
+              ],
             ),
           ),
-          const Column(
-            children: [MusicName(), MusicControls()],
-          ),
+          MusicControls(),
         ],
       ),
     );
   }
 }
 
-class searchMusicBar extends ConsumerWidget {
-  const searchMusicBar({super.key});
+class MetadataColumn extends StatelessWidget {
+  const MetadataColumn({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 400),
+      child:
+          const Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        TrackArt(),
+        SizedBox(height: 50.0),
+        MusicName(),
+      ]),
+    );
+  }
+}
+
+class TrackArt extends ConsumerWidget {
+  const TrackArt({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final metadata = ref.watch(metadataProvider);
+
+    final image = switch (metadata) {
+      AsyncData(:final value) => Image.memory(value.art),
+      AsyncError(:final error) => Text("$error"),
+      _ => const CircularProgressIndicator(),
+    };
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(
+        maxWidth: 300,
+        maxHeight: 300,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16.0),
+        child: image,
+      ),
+    );
+  }
+}
+
+class SearchMusicBar extends ConsumerWidget {
+  const SearchMusicBar({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -89,7 +137,7 @@ class searchMusicBar extends ConsumerWidget {
       hintText: "Search Music",
       onChanged: (value) =>
           ref.read(searchInputProvider.notifier).state = value,
-      leading: Icon(Icons.search),
+      leading: const Icon(Icons.search),
     );
   }
 }
@@ -101,13 +149,30 @@ class MusicName extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final musicName = ref.watch(musicNameProvider);
+    final name = switch (ref.watch(metadataProvider)) {
+      AsyncData(:final value) => value.title,
+      AsyncError() =>
+        path.basenameWithoutExtension(ref.watch(currentTrackProvider)),
+      _ => "",
+    };
 
-    return Text(musicName, overflow: TextOverflow.fade);
+    return Padding(
+      padding: const EdgeInsets.all(10),
+      child: Text(
+        name,
+        overflow: TextOverflow.fade,
+        style: const TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 18.0,
+        ),
+        maxLines: 5,
+        textAlign: TextAlign.center,
+      ),
+    );
   }
 }
 
-class MusicControls extends ConsumerWidget {
+class MusicControls extends StatelessWidget {
   const MusicControls({
     super.key,
   });

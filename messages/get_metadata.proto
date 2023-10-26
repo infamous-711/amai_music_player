@@ -1,0 +1,11 @@
+syntax = "proto3";
+package get_metadata;
+
+message ReadRequest {
+  string path = 1;
+}
+
+message ReadResponse {
+  bytes art = 1;
+  string title = 2;
+}

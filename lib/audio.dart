@@ -1,7 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:path/path.dart' as path;
-import 'dart:io';
 import 'dart:math';
 import 'providers.dart';
 
