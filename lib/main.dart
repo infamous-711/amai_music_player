@@ -179,18 +179,21 @@ class MusicControls extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return const Row(children: [
-      PlayPrevious(),
-      PlayButton(),
-      PlayNext(),
-      SizedBox(width: 10),
-      MusicProgress(),
-      Expanded(child: PositionSlider()),
-      RepeatButton(),
-      ShuffleButton(),
-      VolumeSlider(),
-    ]);
+  Widget build(BuildContext context) {
+    return Container(
+      color: Theme.of(context).colorScheme.surface,
+      child: const Row(children: [
+        PlayPrevious(),
+        PlayButton(),
+        PlayNext(),
+        SizedBox(width: 10),
+        MusicProgress(),
+        Expanded(child: PositionSlider()),
+        RepeatButton(),
+        ShuffleButton(),
+        VolumeSlider(),
+      ]),
+    );
   }
 }
 
