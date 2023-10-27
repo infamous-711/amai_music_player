@@ -208,6 +208,7 @@ class RepeatButton extends ConsumerWidget {
       icon: Icon(ref.watch(repeatIconProvider)),
       onPressed: () =>
           ref.read(repeatMusicProvider.notifier).update((repeat) => !repeat),
+      tooltip: "Repeat",
     );
   }
 }
@@ -223,6 +224,7 @@ class ShuffleButton extends ConsumerWidget {
       icon: Icon(ref.watch(shuffleIconProvider)),
       onPressed: () =>
           ref.read(shuffleMusicProvider.notifier).update((shuffle) => !shuffle),
+      tooltip: "Shuffle",
     );
   }
 }
@@ -323,19 +325,21 @@ class VolumeSlider extends ConsumerWidget {
 
     return Row(children: [
       IconButton(
-          icon: Icon(ref.watch(volumeIconProvider)),
-          onPressed: () => ref.watch(volumeProvider.notifier).update((state) {
-                var newVolume =
-                    1.0; // if it is mute, restore the volume to its full capacity
+        icon: Icon(ref.watch(volumeIconProvider)),
+        onPressed: () => ref.watch(volumeProvider.notifier).update((state) {
+          var newVolume =
+              1.0; // if it is mute, restore the volume to its full capacity
 
-                // mute the volume if it is not already
-                if (state > 0.0) {
-                  newVolume = 0.0;
-                }
+          // mute the volume if it is not already
+          if (state > 0.0) {
+            newVolume = 0.0;
+          }
 
-                ref.read(audioPlayerProvider).setVolume(newVolume);
-                return newVolume;
-              })),
+          ref.read(audioPlayerProvider).setVolume(newVolume);
+          return newVolume;
+        }),
+        tooltip: "Mute",
+      ),
       Slider(
         value: volume,
         onChanged: (newVolume) =>
