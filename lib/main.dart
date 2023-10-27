@@ -374,7 +374,7 @@ class PositionSlider extends ConsumerWidget {
       onChanged: (newPosition) {
         final position = Duration(milliseconds: newPosition.toInt());
         audioPlayer.seek(position);
-        ref.read(positionProvider.notifier).update((_) => position);
+        ref.read(positionProvider.notifier).state = position;
       },
     );
   }
