@@ -390,9 +390,23 @@ class MusicProgress extends ConsumerWidget {
     final currentPosition = ref.watch(positionProvider);
     final audioDuration = ref.watch(durationProvider);
 
-    return Text(
-        '${currentPosition.inMinutes}:${currentPosition.inSeconds - (currentPosition.inMinutes * 60)}'
-        '/${audioDuration.inMinutes}:${audioDuration.inSeconds - (audioDuration.inMinutes * 60)}');
+    String progress;
+    String totalDuration;
+
+    // the below trick is taken from: https://flutterigniter.com/how-to-format-duration/
+    if (audioDuration.inHours >= 1) {
+      // for the duration as HH:mm::ss (if the length of the audio is larger than or equal to an hour)
+      progress =
+          '${currentPosition.toString().split('.').first.padLeft(8, "0")}';
+      totalDuration =
+          '${audioDuration.toString().split('.').first.padLeft(8, "0")}';
+    } else {
+      // format the duration as mm:ss
+      progress = '${currentPosition.toString().substring(2, 7)}';
+      totalDuration = '${audioDuration.toString().substring(2, 7)}';
+    }
+
+    return Text('$progress/$totalDuration');
   }
 }
 
