@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as path;
 import 'providers.dart';
 import 'audio.dart';
+import 'utils.dart';
 
 class MusicList extends ConsumerWidget {
   const MusicList({
@@ -14,7 +15,8 @@ class MusicList extends ConsumerWidget {
     final musicFiles = ref.watch(musicFilesProvider);
     final index = ref.watch(indexProvider);
 
-    return musicFiles.when(
+    return AsyncValueWidget<List<String>>(
+      value: musicFiles,
       data: (value) => Expanded(
         child: Padding(
           padding: const EdgeInsets.all(10.0),
@@ -37,8 +39,6 @@ class MusicList extends ConsumerWidget {
           ),
         ),
       ),
-      error: (error, _) => Text("Error $error"),
-      loading: () => const CircularProgressIndicator.adaptive(),
     );
   }
 }

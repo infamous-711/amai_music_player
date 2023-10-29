@@ -40,7 +40,8 @@ final audioPlayerProvider = Provider((ref) {
   return audioPlayer;
 });
 
-final musicFilesProvider = FutureProvider<List<String>>((ref) async {
+final musicFilesProvider =
+    FutureProvider.autoDispose<List<String>>((ref) async {
   const rustRequest = RustRequest(
     resource: get_music_files.ID,
     operation: RustOperation.Create,

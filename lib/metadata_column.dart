@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers.dart';
 import 'package:path/path.dart' as path;
+import 'utils.dart';
 
 class MetadataColumn extends StatelessWidget {
   const MetadataColumn({super.key});
@@ -27,7 +28,8 @@ class TrackArt extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final metadata = ref.watch(metadataProvider);
 
-    return metadata.when(
+    return AsyncValueWidget<Metadata>(
+      value: metadata,
       data: (value) => ConstrainedBox(
         constraints: const BoxConstraints(
           maxWidth: 300,
@@ -38,8 +40,6 @@ class TrackArt extends ConsumerWidget {
           child: Image.memory(value.art),
         ),
       ),
-      error: (error, _) => Text("Error: $error"),
-      loading: () => const CircularProgressIndicator(),
     );
   }
 }
