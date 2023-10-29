@@ -4,6 +4,7 @@ import 'package:path/path.dart' as path;
 import 'providers.dart';
 import 'audio.dart';
 import 'package:rinf/rinf.dart';
+import 'dart:ui';
 
 const seedColor = Colors.cyan;
 
@@ -15,11 +16,31 @@ Future<void> main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  MyAppState createState() => MyAppState();
+
+}
+
+class MyAppState extends ConsumerState<MyApp> {
+  final _appLifecycleListener = AppLifecycleListener(
+    onExitRequested: () async {
+      // Terminate Rust tasks before closing the Flutter app.
+      await Rinf.ensureFinalized();
+      return AppExitResponse.exit;
+    },
+  );
+
+  @override
+  void dispose() {
+    _appLifecycleListener.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp(
       home: const MusicHome(),
       debugShowCheckedModeBanner: false,
