@@ -267,6 +267,10 @@ class PlayButton extends ConsumerWidget {
     return IconButton(
       icon: Icon(ref.watch(playButtonIconProvider)),
       onPressed: () => isPlaying.update(togglePlay),
+      color: Theme.of(context).colorScheme.onPrimary,
+      style: ButtonStyle(
+          backgroundColor:
+              MaterialStateProperty.all(Theme.of(context).colorScheme.primary)),
       tooltip: "Play",
     );
   }
