@@ -5,6 +5,7 @@ import 'providers.dart';
 import 'audio.dart';
 import 'package:rinf/rinf.dart';
 import 'dart:ui';
+import 'utils.dart';
 
 const seedColor = Colors.cyan;
 
@@ -131,7 +132,8 @@ class TrackArt extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final metadata = ref.watch(metadataProvider);
 
-    return metadata.when(
+    return AsyncValueWidget(
+      value: metadata,
       data: (value) => ConstrainedBox(
         constraints: const BoxConstraints(
           maxWidth: 300,
@@ -142,8 +144,6 @@ class TrackArt extends ConsumerWidget {
           child: Image.memory(value.art),
         ),
       ),
-      error: (error, _) => Text("Error: $error"),
-      loading: () => const CircularProgressIndicator(),
     );
   }
 }
@@ -420,7 +420,8 @@ class MusicList extends ConsumerWidget {
     final musicFiles = ref.watch(musicFilesProvider);
     final index = ref.watch(indexProvider);
 
-    return musicFiles.when(
+    return AsyncValueWidget(
+      value: musicFiles,
       data: (value) => ListView.builder(
         itemCount: value.length,
         itemBuilder: (context, trackIndex) {
@@ -437,8 +438,6 @@ class MusicList extends ConsumerWidget {
           );
         },
       ),
-      error: (error, _) => Text("Error: $error"),
-      loading: () => const CircularProgressIndicator(),
     );
   }
 }
