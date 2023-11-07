@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers.dart';
 import 'package:path/path.dart' as path;
 import 'utils.dart';
+import 'dart:typed_data';
 
 class MetadataColumn extends StatelessWidget {
   const MetadataColumn({super.key});
@@ -28,7 +29,7 @@ class TrackArt extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final metadata = ref.watch(metadataProvider);
 
-    return AsyncValueWidget<Metadata>(
+    return AsyncValueWidget<AudioMetadata>(
       value: metadata,
       data: (value) => ConstrainedBox(
         constraints: const BoxConstraints(
@@ -52,10 +53,10 @@ class MusicName extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final metadata = ref.watch(metadataProvider);
+    final pathName = path.basenameWithoutExtension(ref.watch(currentTrackProvider));
     final name = metadata.when(
       data: (value) => value.title,
-      error: (_, __) =>
-          path.basenameWithoutExtension(ref.watch(currentTrackProvider)),
+      error: (_, __) => pathName,
       loading: () => "",
     );
 

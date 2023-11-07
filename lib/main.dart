@@ -6,6 +6,9 @@ import 'dart:ui';
 import 'music_controls.dart';
 import 'music_list.dart';
 import 'metadata_column.dart';
+import 'dart:typed_data';
+import 'dart:convert';
+import 'utils.dart';
 
 const seedColor = Colors.cyan;
 
@@ -53,7 +56,7 @@ class MyAppState extends ConsumerState<MyApp> {
         colorScheme: ColorScheme.fromSeed(
             seedColor: seedColor, brightness: Brightness.dark),
       ),
-      themeMode: ref.watch(themeModeProvider),
+      themeMode: ref.watch(currentThemeProvider),
     );
   }
 }
@@ -118,8 +121,7 @@ class ThemeModeIcon extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return IconButton(
       icon: Icon(ref.watch(themeModeIconProvider)),
-      onPressed: () => ref.read(themeModeProvider.notifier).update((theme) =>
-          theme == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark),
+      onPressed: () => ref.read(currentThemeProvider.notifier).toggle(),
       tooltip: "Toggle theme",
     );
   }
@@ -133,7 +135,7 @@ class SearchMusicBar extends ConsumerWidget {
     return SearchBar(
       hintText: "Search Music",
       onChanged: (value) =>
-          ref.read(searchInputProvider.notifier).state = value,
+          ref.read(searchInputProvider.notifier).search(value),
       leading: const Icon(Icons.search),
     );
   }
