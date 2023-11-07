@@ -24,12 +24,12 @@ class MusicList extends ConsumerWidget {
 
               return ListTile(
                 title: Text(titleName),
-                selectedColor: Theme.of(context).colorScheme.onPrimary,
-                selectedTileColor: Theme.of(context).colorScheme.primary,
                 onTap: () => ref
                     .read(musicPlayerProvider.notifier)
                     .play(value, trackIndex),
                 selected: trackIndex == ref.watch(currentIndexProvider),
+                selectedColor: Colors.white,
+                selectedTileColor: Theme.of(context).colorScheme.primary.withOpacity(0.4),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16.0),
                 ),
