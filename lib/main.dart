@@ -155,10 +155,11 @@ class SearchMusicBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final debouncer = Debouncer(milliseconds: 250);
     return SearchBar(
       hintText: "Search Music",
       onChanged: (value) =>
-          ref.read(searchInputProvider.notifier).search(value),
+          debouncer.run(() => ref.read(searchInputProvider.notifier).search(value)),
       leading: const Icon(Icons.search),
     );
   }

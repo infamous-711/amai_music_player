@@ -11,31 +11,32 @@ class MusicList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return AsyncValueWidget<List<String>>(
-      value: ref.watch(searchedMusicListProvider),
-      data: (value) => Expanded(
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: ListView.builder(
-            itemCount: value.length,
-            itemBuilder: (context, trackIndex) {
-              String titleName =
-                  path.basenameWithoutExtension(value[trackIndex]);
+    final musicList = ref.watch(searchedMusicListProvider);
+    final themeMode = ref.watch(currentThemeProvider);
+    final selectedColor = themeMode == ThemeMode.dark ? Colors.white : Colors.black;
+    final selectedTileColor = themeMode == ThemeMode.dark ? Theme.of(context).colorScheme.primary.withOpacity(0.5) : Theme.of(context).colorScheme.primary.withOpacity(0.6); 
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: ListView.builder(
+          itemCount: musicList.length,
+          itemBuilder: (context, trackIndex) {
+            String titleName =
+                path.basenameWithoutExtension(musicList[trackIndex]);
 
-              return ListTile(
-                title: Text(titleName),
-                onTap: () => ref
-                    .read(musicPlayerProvider.notifier)
-                    .play(value, trackIndex),
-                selected: trackIndex == ref.watch(currentIndexProvider),
-                selectedColor: Colors.white,
-                selectedTileColor: Theme.of(context).colorScheme.primary.withOpacity(0.4),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20.0),
-                ),
-              );
-            },
-          ),
+            return ListTile(
+              title: Text(titleName),
+              onTap: () => ref
+                  .read(musicPlayerProvider.notifier)
+                  .play(musicList, trackIndex),
+              selected: trackIndex == ref.watch(currentIndexProvider),
+              selectedColor: selectedColor,
+              selectedTileColor: selectedTileColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+            );
+          },
         ),
       ),
     );
