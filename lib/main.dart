@@ -93,23 +93,46 @@ class AppBarActions extends StatelessWidget {
   }
 }
 
-class AppBody extends StatelessWidget {
+class AppBody extends ConsumerWidget {
   const AppBody({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const Column(
-      children: [
-        Expanded(
-          child: Row(
+  Widget build(BuildContext context, WidgetRef ref) {
+    Uint8List blankBytes = Base64Codec().decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+    final metadata = ref.watch(metadataProvider);
+    final art = metadata.when(
+      data: (value) => MemoryImage(value.art),
+      loading: () => MemoryImage(blankBytes),
+      error: (_, __) => MemoryImage(blankBytes), 
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: art,  
+          opacity: 0.2,
+          fit: BoxFit.cover,
+        ), 
+      ),
+      child: 
+      BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 4.8, sigmaY: 4.8),
+        child: Container(
+          child: Column(
             children: [
-              MusicList(),
-              MetadataColumn(),
+              Expanded(
+                child: Row(
+                  children: [
+                    MusicList(),
+                    MetadataColumn(),
+                  ],
+                ),
+              ),
+              MusicControls(),
             ],
           ),
         ),
-        MusicControls(),
-      ],
+      ),
     );
   }
 }
