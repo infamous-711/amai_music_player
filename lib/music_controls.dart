@@ -11,7 +11,7 @@ class MusicControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Theme.of(context).colorScheme.surface,
+      color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
       child: const Row(children: [
         PlayPrevious(),
         PlayButton(),
