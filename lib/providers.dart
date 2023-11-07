@@ -164,10 +164,14 @@ class IsPlaying extends _$IsPlaying {
 } 
 
 @riverpod
-AsyncValue<List<String>> searchedMusicList(SearchedMusicListRef ref) {
+List<String> searchedMusicList(SearchedMusicListRef ref) {
   final query = ref.watch(searchInputProvider);
 
-  return ref.watch(musicListProvider).whenData((value) => value.where((name) => name.toLowerCase().contains(query.toLowerCase())).toList());
+  return ref.watch(musicListProvider).when(
+    data: (value) => value.where((name) => name.toLowerCase().contains(query.toLowerCase())).toList(),
+    loading: () => [],
+    error: (_, __) => [],
+  );
 }
 
 @riverpod

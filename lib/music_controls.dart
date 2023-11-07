@@ -84,14 +84,12 @@ class PlayNext extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final musicList = ref.watch(searchedMusicListProvider);
     final index = ref.watch(currentIndexProvider);
-    return AsyncValueWidget<List<String>>(
-      value: ref.watch(musicListProvider),
-      data: (value) => IconButton(
-        icon: const Icon(Icons.skip_next),
-        onPressed: () => ref.read(musicPlayerProvider.notifier).playNext(value, index),
-        tooltip: "Play Next",
-      ),
+    return IconButton(
+      icon: const Icon(Icons.skip_next),
+      onPressed: () => ref.read(musicPlayerProvider.notifier).playNext(musicList, index),
+      tooltip: "Play Next",
     );
   }
 }
@@ -103,14 +101,12 @@ class PlayPrevious extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final musicList = ref.watch(searchedMusicListProvider);
     final index = ref.watch(currentIndexProvider);
-    return AsyncValueWidget<List<String>>(
-      value: ref.watch(musicListProvider),
-      data: (value) => IconButton(
-        icon: const Icon(Icons.skip_previous),
-        onPressed: () => ref.read(musicPlayerProvider.notifier).playPrevious(value, index),
-        tooltip: "Play Previous",
-      ),
+    return IconButton(
+      icon: const Icon(Icons.skip_previous),
+      onPressed: () => ref.read(musicPlayerProvider.notifier).playPrevious(musicList, index),
+      tooltip: "Play Previous",
     );
   }
 }

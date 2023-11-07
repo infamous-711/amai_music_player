@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 
 // Generic AsyncValueWidget to work with values of type T
 class AsyncValueWidget<T> extends StatelessWidget {
@@ -29,5 +30,20 @@ class AsyncValueWidget<T> extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class Debouncer {
+  final int milliseconds;
+  late VoidCallback action;
+  Timer? _timer;
+
+  Debouncer({required int this.milliseconds});
+
+  run(VoidCallback action) {
+    if (null != _timer) {
+      _timer?.cancel();
+    }
+    _timer = Timer(Duration(milliseconds: milliseconds), action);
   }
 }
