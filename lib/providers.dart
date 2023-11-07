@@ -62,8 +62,6 @@ class MusicPlayer extends _$MusicPlayer {
     // change the current track
     ref.watch(currentTrackProvider.notifier).set(musicList[index]);
 
-    isMusicFinished.set(false); // set the musicList to false as audio playing just started
-
     playMusic(trackPlayer, musicList, index);
 
     final trackPosition = ref.watch(positionProvider.notifier);
