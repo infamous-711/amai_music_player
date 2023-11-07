@@ -31,7 +31,7 @@ class MusicList extends ConsumerWidget {
                 selectedColor: Colors.white,
                 selectedTileColor: Theme.of(context).colorScheme.primary.withOpacity(0.4),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16.0),
+                  borderRadius: BorderRadius.circular(20.0),
                 ),
               );
             },
