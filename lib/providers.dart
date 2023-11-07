@@ -74,12 +74,10 @@ class MusicPlayer extends _$MusicPlayer {
       trackDuration.set(duration);
     });
 
-    final repeatMusic = ref.watch(repeatMusicProvider);
-    final shuffleMusic = ref.watch(shuffleMusicProvider);
     trackPlayer.onPlayerComplete.listen((_) {
-      if (repeatMusic) {
+      if (ref.read(repeatMusicProvider)) {
         repeatTrack();
-      } else if (shuffleMusic) {
+      } else if (ref.read(shuffleMusicProvider)) {
         shuffleTrack(musicList, index);
       }
     });
