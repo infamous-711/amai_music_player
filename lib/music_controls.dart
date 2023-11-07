@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers.dart';
-import 'audio.dart';
+import 'utils.dart';
 
 class MusicControls extends StatelessWidget {
   const MusicControls({
@@ -11,7 +11,7 @@ class MusicControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Theme.of(context).colorScheme.surface,
+      color: Theme.of(context).colorScheme.surface.withOpacity(0.8),
       child: const Row(children: [
         PlayPrevious(),
         PlayButton(),
@@ -36,8 +36,7 @@ class RepeatButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return IconButton(
       icon: Icon(ref.watch(repeatIconProvider)),
-      onPressed: () =>
-          ref.read(repeatMusicProvider.notifier).update((repeat) => !repeat),
+      onPressed: () => ref.read(repeatMusicProvider.notifier).toggle(),
       tooltip: "Repeat",
     );
   }
@@ -53,7 +52,7 @@ class ShuffleButton extends ConsumerWidget {
     return IconButton(
       icon: Icon(ref.watch(shuffleIconProvider)),
       onPressed: () =>
-          ref.read(shuffleMusicProvider.notifier).update((shuffle) => !shuffle),
+          ref.read(shuffleMusicProvider.notifier).toggle(),
       tooltip: "Shuffle",
     );
   }
@@ -66,17 +65,9 @@ class PlayButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final audioPlayer = ref.watch(audioPlayerProvider);
-    final isPlaying = ref.watch(isPlayingProvider.notifier);
-
-    bool togglePlay(bool isPlaying) {
-      isPlaying ? audioPlayer.pause() : audioPlayer.resume();
-      return !isPlaying;
-    }
-
     return IconButton(
       icon: Icon(ref.watch(playButtonIconProvider)),
-      onPressed: () => isPlaying.update(togglePlay),
+      onPressed: () => ref.read(musicPlayerProvider.notifier).togglePlay(),
       color: Theme.of(context).colorScheme.onPrimary,
       style: ButtonStyle(
           backgroundColor:
@@ -93,17 +84,14 @@ class PlayNext extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final musicFiles = ref.watch(musicFilesProvider);
-    final currentIndex = ref.watch(indexProvider);
-
-    return IconButton(
-      icon: const Icon(Icons.skip_next),
-      onPressed: () => musicFiles.whenData((value) {
-        if ((value.length - 1) != currentIndex && currentIndex >= 0) {
-          playMusic(ref, value, currentIndex + 1);
-        }
-      }),
-      tooltip: "Play Next",
+    final index = ref.watch(currentIndexProvider);
+    return AsyncValueWidget<List<String>>(
+      value: ref.watch(musicListProvider),
+      data: (value) => IconButton(
+        icon: const Icon(Icons.skip_next),
+        onPressed: () => ref.read(musicPlayerProvider.notifier).playNext(value, index),
+        tooltip: "Play Next",
+      ),
     );
   }
 }
@@ -115,17 +103,14 @@ class PlayPrevious extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final musicFiles = ref.watch(musicFilesProvider);
-    final currentIndex = ref.watch(indexProvider);
-
-    return IconButton(
-      icon: const Icon(Icons.skip_previous),
-      onPressed: () => musicFiles.whenData((value) {
-        if (currentIndex > 0) {
-          playMusic(ref, value, currentIndex - 1);
-        }
-      }),
-      tooltip: "Play Previous",
+    final index = ref.watch(currentIndexProvider);
+    return AsyncValueWidget<List<String>>(
+      value: ref.watch(musicListProvider),
+      data: (value) => IconButton(
+        icon: const Icon(Icons.skip_previous),
+        onPressed: () => ref.read(musicPlayerProvider.notifier).playPrevious(value, index),
+        tooltip: "Play Previous",
+      ),
     );
   }
 }
@@ -138,27 +123,17 @@ class VolumeSlider extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final volume = ref.watch(volumeProvider);
-
+    final volumeNotifier = ref.watch(volumeProvider.notifier);
+  
     return Row(children: [
       IconButton(
         icon: Icon(ref.watch(volumeIconProvider)),
-        onPressed: () => ref.watch(volumeProvider.notifier).update((state) {
-          // if it is mute, restore the volume to its full capacity
-          // mute the volume if it is not already
-          var newVolume = state > 0.0 ? 0.0 : 1.0;
-
-          ref.read(audioPlayerProvider).setVolume(newVolume);
-          return newVolume;
-        }),
+        onPressed: () => volumeNotifier.toggleMute(),
         tooltip: "Mute",
       ),
       Slider(
         value: volume,
-        onChanged: (newVolume) =>
-            ref.watch(volumeProvider.notifier).update((state) {
-          ref.read(audioPlayerProvider).setVolume(newVolume);
-          return newVolume;
-        }),
+        onChanged: (newVolume) => volumeNotifier.set(newVolume),
         max: 1.0,
         min: 0.0,
         divisions: 20,
@@ -175,9 +150,9 @@ class PositionSlider extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final audioPlayer = ref.watch(audioPlayerProvider);
+    final trackPlayer = ref.watch(trackPlayerProvider);
     final currentPosition = ref.watch(positionProvider);
-    final audioDuration = ref.watch(durationProvider);
+    final audioDuration = ref.watch(trackDurationProvider);
 
     return Slider(
       min: 0.0,
@@ -185,8 +160,8 @@ class PositionSlider extends ConsumerWidget {
       value: currentPosition.inMilliseconds.toDouble(),
       onChanged: (newPosition) {
         final position = Duration(milliseconds: newPosition.toInt());
-        audioPlayer.seek(position);
-        ref.read(positionProvider.notifier).state = position;
+        trackPlayer.seek(position);
+        ref.read(positionProvider.notifier).set(position);
       },
     );
   }
@@ -200,7 +175,7 @@ class MusicProgress extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentPosition = ref.watch(positionProvider);
-    final audioDuration = ref.watch(durationProvider);
+    final audioDuration = ref.watch(trackDurationProvider);
 
     String progress;
     String totalDuration;

@@ -119,3 +119,4 @@ target/
 
 # Generated messages
 */**/messages/
+lib/providers.g.dart

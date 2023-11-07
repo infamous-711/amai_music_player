@@ -6,6 +6,9 @@ import 'dart:ui';
 import 'music_controls.dart';
 import 'music_list.dart';
 import 'metadata_column.dart';
+import 'dart:typed_data';
+import 'dart:convert';
+import 'utils.dart';
 
 const seedColor = Colors.cyan;
 
@@ -53,7 +56,7 @@ class MyAppState extends ConsumerState<MyApp> {
         colorScheme: ColorScheme.fromSeed(
             seedColor: seedColor, brightness: Brightness.dark),
       ),
-      themeMode: ref.watch(themeModeProvider),
+      themeMode: ref.watch(currentThemeProvider),
     );
   }
 }
@@ -90,23 +93,46 @@ class AppBarActions extends StatelessWidget {
   }
 }
 
-class AppBody extends StatelessWidget {
+class AppBody extends ConsumerWidget {
   const AppBody({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const Column(
-      children: [
-        Expanded(
-          child: Row(
+  Widget build(BuildContext context, WidgetRef ref) {
+    Uint8List blankBytes = Base64Codec().decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+    final metadata = ref.watch(metadataProvider);
+    final art = metadata.when(
+      data: (value) => MemoryImage(value.art),
+      loading: () => MemoryImage(blankBytes),
+      error: (_, __) => MemoryImage(blankBytes), 
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: art,  
+          opacity: 0.2,
+          fit: BoxFit.cover,
+        ), 
+      ),
+      child: 
+      BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 4.8, sigmaY: 4.8),
+        child: Container(
+          child: Column(
             children: [
-              MusicList(),
-              MetadataColumn(),
+              Expanded(
+                child: Row(
+                  children: [
+                    MusicList(),
+                    MetadataColumn(),
+                  ],
+                ),
+              ),
+              MusicControls(),
             ],
           ),
         ),
-        MusicControls(),
-      ],
+      ),
     );
   }
 }
@@ -118,8 +144,7 @@ class ThemeModeIcon extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return IconButton(
       icon: Icon(ref.watch(themeModeIconProvider)),
-      onPressed: () => ref.read(themeModeProvider.notifier).update((theme) =>
-          theme == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark),
+      onPressed: () => ref.read(currentThemeProvider.notifier).toggle(),
       tooltip: "Toggle theme",
     );
   }
@@ -133,7 +158,7 @@ class SearchMusicBar extends ConsumerWidget {
     return SearchBar(
       hintText: "Search Music",
       onChanged: (value) =>
-          ref.read(searchInputProvider.notifier).state = value,
+          ref.read(searchInputProvider.notifier).search(value),
       leading: const Icon(Icons.search),
     );
   }
