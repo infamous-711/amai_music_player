@@ -53,7 +53,8 @@ class MusicName extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final metadata = ref.watch(metadataProvider);
-    final pathName = path.basenameWithoutExtension(ref.watch(currentTrackProvider));
+    final pathName =
+        path.basenameWithoutExtension(ref.watch(currentTrackProvider));
     final name = metadata.when(
       data: (value) => value.title,
       error: (_, __) => pathName,

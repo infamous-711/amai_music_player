@@ -98,24 +98,24 @@ class AppBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Uint8List blankBytes = Base64Codec().decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+    Uint8List blankBytes = Base64Codec()
+        .decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
     final metadata = ref.watch(metadataProvider);
     final art = metadata.when(
       data: (value) => MemoryImage(value.art),
       loading: () => MemoryImage(blankBytes),
-      error: (_, __) => MemoryImage(blankBytes), 
+      error: (_, __) => MemoryImage(blankBytes),
     );
 
     return Container(
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: art,  
+          image: art,
           opacity: 0.2,
           fit: BoxFit.cover,
-        ), 
+        ),
       ),
-      child: 
-      BackdropFilter(
+      child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 4.8, sigmaY: 4.8),
         child: Container(
           child: Column(
@@ -158,8 +158,8 @@ class SearchMusicBar extends ConsumerWidget {
     final debouncer = Debouncer(milliseconds: 250);
     return SearchBar(
       hintText: "Search Music",
-      onChanged: (value) =>
-          debouncer.run(() => ref.read(searchInputProvider.notifier).search(value)),
+      onChanged: (value) => debouncer
+          .run(() => ref.read(searchInputProvider.notifier).search(value)),
       leading: const Icon(Icons.search),
     );
   }

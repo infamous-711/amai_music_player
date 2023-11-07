@@ -13,8 +13,11 @@ class MusicList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final musicList = ref.watch(searchedMusicListProvider);
     final themeMode = ref.watch(currentThemeProvider);
-    final selectedColor = themeMode == ThemeMode.dark ? Colors.white : Colors.black;
-    final selectedTileColor = themeMode == ThemeMode.dark ? Theme.of(context).colorScheme.primary.withOpacity(0.5) : Theme.of(context).colorScheme.primary.withOpacity(0.6); 
+    final selectedColor =
+        themeMode == ThemeMode.dark ? Colors.white : Colors.black;
+    final selectedTileColor = themeMode == ThemeMode.dark
+        ? Theme.of(context).colorScheme.primary.withOpacity(0.5)
+        : Theme.of(context).colorScheme.primary.withOpacity(0.6);
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.all(10.0),

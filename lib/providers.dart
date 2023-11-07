@@ -26,7 +26,6 @@ AudioPlayer trackPlayer(TrackPlayerRef ref) {
 
 @riverpod
 class MusicPlayer extends _$MusicPlayer {
-  
   @override
   void build() {
     return;
@@ -96,13 +95,12 @@ class MusicPlayer extends _$MusicPlayer {
   }
 }
 
-
 @riverpod
 class Position extends _$Position {
   @override
   Duration build() => const Duration();
 
-  void set(Duration duration) => state = duration;  
+  void set(Duration duration) => state = duration;
 }
 
 @riverpod
@@ -110,7 +108,7 @@ class TrackDuration extends _$TrackDuration {
   @override
   Duration build() => const Duration();
 
-  void set(Duration duration) => state = duration;  
+  void set(Duration duration) => state = duration;
 }
 
 @riverpod
@@ -127,14 +125,14 @@ class Volume extends _$Volume {
   double build() => ref.watch(trackPlayerProvider).volume;
 
   void set(double volume) {
-    final musicPlayer = ref.watch(trackPlayerProvider);  
+    final musicPlayer = ref.watch(trackPlayerProvider);
     musicPlayer.setVolume(volume);
     state = volume;
   }
 
   void toggleMute() {
     set(state > 0.0 ? 0.0 : 1.0);
-  } 
+  }
 }
 
 @riverpod
@@ -159,17 +157,19 @@ class IsPlaying extends _$IsPlaying {
   bool build() => false;
 
   set(bool playing) => state = playing;
-} 
+}
 
 @riverpod
 List<String> searchedMusicList(SearchedMusicListRef ref) {
   final query = ref.watch(searchInputProvider);
 
   return ref.watch(musicListProvider).when(
-    data: (value) => value.where((name) => name.toLowerCase().contains(query.toLowerCase())).toList(),
-    loading: () => [],
-    error: (_, __) => [],
-  );
+        data: (value) => value
+            .where((name) => name.toLowerCase().contains(query.toLowerCase()))
+            .toList(),
+        loading: () => [],
+        error: (_, __) => [],
+      );
 }
 
 @riverpod
@@ -225,7 +225,7 @@ class SearchInput extends _$SearchInput {
 
 @riverpod
 class CurrentTheme extends _$CurrentTheme {
-  @override 
+  @override
   ThemeMode build() => ThemeMode.dark; // dark theme by default
 
   void toggle() {

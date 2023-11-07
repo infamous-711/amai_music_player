@@ -51,8 +51,7 @@ class ShuffleButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return IconButton(
       icon: Icon(ref.watch(shuffleIconProvider)),
-      onPressed: () =>
-          ref.read(shuffleMusicProvider.notifier).toggle(),
+      onPressed: () => ref.read(shuffleMusicProvider.notifier).toggle(),
       tooltip: "Shuffle",
     );
   }
@@ -88,7 +87,8 @@ class PlayNext extends ConsumerWidget {
     final index = ref.watch(currentIndexProvider);
     return IconButton(
       icon: const Icon(Icons.skip_next),
-      onPressed: () => ref.read(musicPlayerProvider.notifier).playNext(musicList, index),
+      onPressed: () =>
+          ref.read(musicPlayerProvider.notifier).playNext(musicList, index),
       tooltip: "Play Next",
     );
   }
@@ -105,7 +105,8 @@ class PlayPrevious extends ConsumerWidget {
     final index = ref.watch(currentIndexProvider);
     return IconButton(
       icon: const Icon(Icons.skip_previous),
-      onPressed: () => ref.read(musicPlayerProvider.notifier).playPrevious(musicList, index),
+      onPressed: () =>
+          ref.read(musicPlayerProvider.notifier).playPrevious(musicList, index),
       tooltip: "Play Previous",
     );
   }
@@ -120,7 +121,7 @@ class VolumeSlider extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final volume = ref.watch(volumeProvider);
     final volumeNotifier = ref.watch(volumeProvider.notifier);
-  
+
     return Row(children: [
       IconButton(
         icon: Icon(ref.watch(volumeIconProvider)),
