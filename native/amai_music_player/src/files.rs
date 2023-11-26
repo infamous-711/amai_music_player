@@ -13,7 +13,7 @@ pub fn get_music_files() -> (Vec<String>, String) {
                 let Some(ext) = path.extension() else {
                     return false;
                 };
-                ext == "mp4" || ext == "ogg"
+                ext == "mp3" || ext == "ogg"
             })
             .map(|entry| {
                 entry
