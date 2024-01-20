@@ -13,5 +13,9 @@ opt-level = 3
 
 [dependencies]
 directories = "5.0.1"
-iced = { version = "0.10.0", features = ["debug", "tokio"] }
-kira = "0.8.4"
+kira = "0.8.6"
+
+[dependencies.iced]
+git = "https://github.com/iced-rs/iced.git"
+rev = "61e3d8502fec7e83c584218e598fa20c79363be3"
+features = ["tokio"]
