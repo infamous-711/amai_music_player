@@ -1,46 +1,85 @@
-use crate::AmaiPlayer;
 use directories::UserDirs;
+use kira::manager::AudioManager;
+use kira::sound::SoundData;
 use kira::{
     sound::static_sound::{StaticSoundData, StaticSoundSettings},
     tween::Tween,
 };
 use std::path::PathBuf;
+use std::time::Duration;
 
-pub fn play_track(state: &mut AmaiPlayer, index: usize) {
-    if state.is_playing {
-        if let Some(ref mut current_track) = &mut state.current_track {
-            current_track.stop(Tween::default()).unwrap();
-            state.is_playing = false;
-        }
-    }
-
-    let sound_data = StaticSoundData::from_file(
-        &state.music_list[index],
-        StaticSoundSettings::new().volume(state.current_volume),
-    )
-    .unwrap();
-
-    state.current_track = state.audio_manager.play(sound_data).ok();
-    state.is_playing = true;
+pub struct CurrentTrack {
+    pub index: Option<usize>,
+    pub is_playing: bool,
+    pub volume: f64,
+    pub duration: Duration,
+    pub handle: Option<<StaticSoundData as SoundData>::Handle>,
 }
 
-pub fn toggle_play(state: &mut AmaiPlayer) {
-    if let Some(ref mut current_track) = &mut state.current_track {
-        if state.is_playing {
-            current_track.pause(Tween::default()).unwrap();
-            state.is_playing = false;
+impl Default for CurrentTrack {
+    fn default() -> Self {
+        CurrentTrack {
+            index: None,
+            is_playing: false,
+            volume: 0.5,
+            duration: Duration::from_secs(0),
+            handle: None,
+        }
+    }
+}
+
+impl CurrentTrack {
+    pub fn play(&mut self, audio_manager: &mut AudioManager, music_list: &[PathBuf], index: usize) {
+        if self.is_playing {
+            let Some(ref mut handle) = self.handle else {
+                return;
+            };
+            handle.stop(Tween::default()).unwrap();
+            self.is_playing = false;
+        }
+
+        let sound_data = StaticSoundData::from_file(
+            &music_list[index],
+            StaticSoundSettings::new().volume(self.volume),
+        )
+        .unwrap();
+
+        self.handle = audio_manager.play(sound_data.clone()).ok();
+        self.is_playing = true;
+        self.index = Some(index);
+        self.duration = sound_data.duration();
+    }
+
+    pub fn toggle(&mut self) {
+        let Some(ref mut handle) = self.handle else {
+            return;
+        };
+        if self.is_playing {
+            handle.pause(Tween::default()).unwrap();
+            self.is_playing = false;
         } else {
-            current_track.resume(Tween::default()).unwrap();
-            state.is_playing = true;
+            handle.resume(Tween::default()).unwrap();
+            self.is_playing = true;
         }
     }
-}
 
-pub fn change_volume(state: &mut AmaiPlayer, volume: f64) {
-    if let Some(ref mut current_track) = &mut state.current_track {
-        current_track.set_volume(volume, Tween::default()).unwrap();
+    pub fn set_volume(&mut self, volume: f64) {
+        let Some(ref mut handle) = self.handle else {
+            return;
+        };
+        handle.set_volume(volume, Tween::default()).unwrap();
+        self.volume = volume;
     }
-    state.current_volume = volume;
+
+    pub fn seek(&mut self, current_position: &mut f64, position: f64) {
+        let Some(ref mut handle) = self.handle else {
+            return;
+        };
+        let Ok(_) = handle.seek_to(position) else {
+            return;
+        };
+        *current_position = position;
+    }
 }
 
 pub fn get_music_list() -> Vec<PathBuf> {
@@ -51,15 +90,18 @@ pub fn get_music_list() -> Vec<PathBuf> {
     };
 
     entries
-        .filter(|entry| {
-            let Ok(entry) = entry else { return false };
+        .filter_map(|entry| {
+            let Ok(entry) = entry else { return None };
             let path = entry.path();
             let Some(ext) = path.extension() else {
-                return false;
+                return None;
             };
 
-            ext == "mp4" || ext == "ogg"
+            if ext == "mp3" || ext == "ogg" {
+                Some(path)
+            } else {
+                None
+            }
         })
-        .map(|entry| entry.unwrap().path())
         .collect()
 }

@@ -1,35 +1,31 @@
-use crate::{
-    audio::{change_volume, get_music_list, play_track, toggle_play},
-    style::MusicListButton,
-};
+use crate::audio::{get_music_list, CurrentTrack};
 use iced::{
     executor,
-    widget::{button, column, container, row, scrollable, slider, text, Column},
-    Application, Command, Element, Length, Settings, Theme,
+    widget::{button, column, container, row, scrollable, slider, text, text_input, Column},
+    Application, Command, Element, Length, Settings, Subscription, Theme,
 };
-use kira::{
-    manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings},
-    sound::{static_sound::StaticSoundData, SoundData},
-};
+use kira::manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings};
 use std::path::PathBuf;
+use std::time::Duration;
 
 mod audio;
-mod style;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub enum Message {
     TogglePlay,
     PlayTrack(usize),
     ChangeVolume(f64),
+    ChangePosition(f64),
+    UpdatePosition,
+    SearchMusic(String),
 }
 
 pub struct AmaiPlayer {
-    is_playing: bool,
     music_list: Vec<PathBuf>,
-    current_track: Option<<StaticSoundData as SoundData>::Handle>,
-    current_volume: f64,
     audio_manager: AudioManager,
-    selected_track_index: Option<usize>,
+    current_track: CurrentTrack,
+    position: f64,
+    search_query: String,
 }
 
 impl Application for AmaiPlayer {
@@ -47,10 +43,9 @@ impl Application for AmaiPlayer {
             AmaiPlayer {
                 music_list,
                 audio_manager,
-                current_track: None,
-                current_volume: 0.5,
-                is_playing: false,
-                selected_track_index: None,
+                current_track: CurrentTrack::default(),
+                position: 0.,
+                search_query: String::new(),
             },
             Command::none(),
         )
@@ -61,54 +56,80 @@ impl Application for AmaiPlayer {
     }
 
     fn theme(&self) -> Theme {
+        // TODO: Add a custom theme/style
         Theme::Dark
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
-            Message::TogglePlay => toggle_play(self),
+            Message::TogglePlay => self.current_track.toggle(),
             Message::PlayTrack(index) => {
-                self.selected_track_index = Some(index);
-                play_track(self, index);
+                self.current_track
+                    .play(&mut self.audio_manager, &self.music_list, index)
             }
-            Message::ChangeVolume(volume) => change_volume(self, volume),
+            Message::ChangeVolume(volume) => self.current_track.set_volume(volume),
+            Message::ChangePosition(position) => {
+                self.current_track.seek(&mut self.position, position)
+            }
+            Message::UpdatePosition => match &self.current_track.handle {
+                Some(handle) => self.position = handle.position(),
+                None => self.position = 0.,
+            },
+            Message::SearchMusic(query) => self.search_query = query,
         };
 
         Command::none()
     }
 
     fn view(&self) -> iced::Element<'_, Self::Message> {
-        let play_button =
-            button(text(if self.is_playing { "⏸" } else { "▶" }).shaping(text::Shaping::Advanced))
-                .on_press(Message::TogglePlay);
+        let play_button = button(
+            text(if self.current_track.is_playing {
+                "||"
+            } else {
+                "|>"
+            })
+            .shaping(text::Shaping::Advanced),
+        )
+        .on_press(Message::TogglePlay);
 
-        let volume_slider =
-            slider(0.0..=1.0f64, self.current_volume, Message::ChangeVolume).step(0.01);
+        let volume_slider = slider(
+            0.0..=1.0f64,
+            self.current_track.volume,
+            Message::ChangeVolume,
+        )
+        .step(0.01)
+        .width(Length::Portion(4));
+
+        let duration = self.current_track.duration.as_secs() as f64;
+
+        let position_slider =
+            slider(0.0..=duration, self.position, Message::ChangePosition).step(0.01);
 
         let music_buttons: Element<_> = self
             .music_list
             .iter()
             .enumerate()
+            .filter(|(_, name)| {
+                name.to_str()
+                    .unwrap()
+                    .to_lowercase()
+                    .as_str()
+                    .contains(self.search_query.to_lowercase().as_str())
+            })
             .fold(
                 Column::new().spacing(2).width(Length::Fill),
                 |column, (index, file)| {
                     let file_name = file.file_stem().unwrap().to_str().unwrap();
                     let button_text =
                         text(file_name).shaping(match contains_non_english_chars(file_name) {
-                            true => text::Shaping::Advanced,
-                            false => text::Shaping::Basic,
+                            true => text::Shaping::Advanced, // use Advanced shaping if there's a unicode character
+                            false => text::Shaping::Basic, // use Basic shaping if there's only alphanumeric characters
                         });
 
-                    let is_selected = self.selected_track_index == Some(index);
-
                     let music_button = button(button_text)
+                        .margin(10)
                         .padding(10)
                         .width(Length::Fill)
-                        .style(if is_selected {
-                            MusicListButton::Selected.into()
-                        } else {
-                            MusicListButton::Primary.into()
-                        })
                         .on_press(Message::PlayTrack(index));
 
                     column.push(music_button)
@@ -122,15 +143,29 @@ impl Application for AmaiPlayer {
             .width(Length::Fill)
             .height(Length::Fill);
 
+        let searchbar = text_input("Search Music", &self.search_query)
+            .on_input(Message::SearchMusic)
+            .padding(10);
+
         let final_content = column![
+            searchbar,
             music_list_container,
-            row![play_button, volume_slider].spacing(20).padding(10)
+            row![play_button, position_slider, volume_slider]
+                .spacing(20)
+                .padding(10),
         ];
 
         container(final_content)
             .width(Length::Fill)
             .height(Length::Fill)
             .into()
+    }
+    fn subscription(&self) -> Subscription<Self::Message> {
+        if !self.current_track.is_playing {
+            return Subscription::none();
+        }
+
+        iced::time::every(Duration::from_secs(2)).map(|_| Message::UpdatePosition)
     }
 }
 
