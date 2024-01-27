@@ -64,11 +64,12 @@ impl CurrentTrack {
     }
 
     pub fn set_volume(&mut self, volume: f64) {
+        self.volume = volume; // set the volume even if no audio is playing
+
         let Some(ref mut handle) = self.handle else {
             return;
         };
         handle.set_volume(volume, Tween::default()).unwrap();
-        self.volume = volume;
     }
 
     pub fn seek(&mut self, current_position: &mut f64, position: f64) {
