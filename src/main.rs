@@ -98,12 +98,12 @@ impl Application for AmaiPlayer {
             Message::ChangeVolume,
         )
         .step(0.01)
-        .width(Length::Portion(4));
+        .width(Length::Fill);
 
         let duration = self.current_track.duration.as_secs() as f64;
 
         let position_slider =
-            slider(0.0..=duration, self.position, Message::ChangePosition).step(0.01);
+            slider(0.0..=duration, self.position, Message::ChangePosition).step(0.01).width(Length::FillPortion(4));
 
         let music_buttons: Element<_> = self
             .music_list
@@ -127,7 +127,6 @@ impl Application for AmaiPlayer {
                         });
 
                     let music_button = button(button_text)
-                        .margin(10)
                         .padding(10)
                         .width(Length::Fill)
                         .on_press(Message::PlayTrack(index));
