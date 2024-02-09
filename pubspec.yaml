@@ -34,9 +34,10 @@ dependencies:
   audioplayers: ^5.0.0
   path: ^1.8.3
   flutter_riverpod: ^2.4.5
-  rinf: ^4.15.0
-  protobuf: ^3.1.0
   riverpod_annotation: ^2.3.0
+  rust_builder:
+    path: rust_builder
+  flutter_rust_bridge: 2.0.0-dev.24
 
 dev_dependencies:
   flutter_test:
@@ -48,10 +49,13 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
-  custom_lint: ^0.5.6
-  riverpod_lint: ^2.3.3
-  riverpod_generator: ^2.3.5
+  custom_lint: ^0.6.0
+  riverpod_lint: ^2.3.9
+  riverpod_generator: ^2.3.11
   build_runner: ^2.4.6
+  ffigen: ^8.0.2
+  integration_test:
+    sdk: flutter
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

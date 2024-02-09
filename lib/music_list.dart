@@ -18,28 +18,24 @@ class MusicList extends ConsumerWidget {
     final selectedTileColor = themeMode == ThemeMode.dark
         ? Theme.of(context).colorScheme.primary.withOpacity(0.5)
         : Theme.of(context).colorScheme.primary.withOpacity(0.6);
+
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
         child: ListView.builder(
           itemCount: musicList.length,
-          itemBuilder: (context, trackIndex) {
-            String titleName =
-                path.basenameWithoutExtension(musicList[trackIndex]);
-
-            return ListTile(
-              title: Text(titleName),
-              onTap: () => ref
-                  .read(musicPlayerProvider.notifier)
-                  .play(musicList, trackIndex),
-              selected: trackIndex == ref.watch(currentIndexProvider),
-              selectedColor: selectedColor,
-              selectedTileColor: selectedTileColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20.0),
-              ),
-            );
-          },
+          itemBuilder: (context, trackIndex) => ListTile(
+            title: Text(musicList[trackIndex].name),
+            onTap: () => ref
+                .read(musicPlayerProvider.notifier)
+                .play(musicList, trackIndex),
+            selected: musicList[trackIndex].id == ref.watch(currentIndexProvider),
+            selectedColor: selectedColor,
+            selectedTileColor: selectedTileColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.0),
+            ),
+          ),
         ),
       ),
     );
