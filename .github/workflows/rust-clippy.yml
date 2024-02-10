@@ -42,7 +42,7 @@ jobs:
         run: cargo install clippy-sarif sarif-fmt 'flutter_rust_bridge_codegen@^2.0.0-dev.0'
 
       - name: Run `flutter_rust_bridge_codegen generate`
-        run: flutter_rust_bridge_codegen generate
+        run: flutter_rust_bridge_codegen integrate && flutter_rust_bridge_codegen generate
 
       - name: Run rust-clippy
         working-directory: ./rust
