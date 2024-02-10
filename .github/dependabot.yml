@@ -4,7 +4,7 @@
 version: 2
 updates:
   - package-ecosystem: "cargo" # For rust crate updates
-    directory: "/Cargo.toml"
+    directory: "/rust/Cargo.toml"
     schedule:
       interval: "weekly"
   - package-ecosystem: "pub" # For dart pub updates

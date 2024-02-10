@@ -1,7 +1,0 @@
-syntax = "proto3";
-package get_music_files;
-
-message CreateResponse {
-  string music_folder = 1;
-  repeated string music_files = 2;
-}

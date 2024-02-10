@@ -1,49 +1,30 @@
+// flutter_rust_bridge imports
+import 'package:amai_music_player/src/rust/frb_generated.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers.dart';
-import 'package:rinf/rinf.dart';
 import 'dart:ui';
 import 'music_controls.dart';
 import 'music_list.dart';
 import 'metadata_column.dart';
-import 'dart:typed_data';
-import 'dart:convert';
 import 'utils.dart';
 
 const seedColor = Colors.cyan;
 
 Future<void> main() async {
   // Wait for rust initialization to be completed first
-  await Rinf.ensureInitialized();
+  await RustLib.init();
 
   // run the flutter app
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends ConsumerStatefulWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  MyAppState createState() => MyAppState();
-}
-
-class MyAppState extends ConsumerState<MyApp> {
-  final _appLifecycleListener = AppLifecycleListener(
-    onExitRequested: () async {
-      // Terminate Rust tasks before closing the Flutter app.
-      await Rinf.ensureFinalized();
-      return AppExitResponse.exit;
-    },
-  );
-
-  @override
-  void dispose() {
-    _appLifecycleListener.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
       home: const MusicHome(),
       debugShowCheckedModeBanner: false,
@@ -98,23 +79,24 @@ class AppBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    Uint8List blankBytes = Base64Codec()
-        .decode("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
-    final metadata = ref.watch(metadataProvider);
-    final art = metadata.when(
-      data: (value) => MemoryImage(value.art),
-      loading: () => MemoryImage(blankBytes),
-      error: (_, __) => MemoryImage(blankBytes),
+    BoxDecoration? art = ref.watch(metadataProvider).when(
+      data: (value) {
+        if (value != null && value.art != null) {
+          return BoxDecoration(
+            image: DecorationImage(
+              image: MemoryImage(value.art!),
+              opacity: 0.2,
+              fit: BoxFit.cover,
+            ),
+          );
+        }
+      },
+      loading: () => null,
+      error: (_, __) => null,
     );
 
     return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: art,
-          opacity: 0.2,
-          fit: BoxFit.cover,
-        ),
-      ),
+      decoration: art,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 4.8, sigmaY: 4.8),
         child: Container(

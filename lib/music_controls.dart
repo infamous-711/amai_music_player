@@ -87,8 +87,11 @@ class PlayNext extends ConsumerWidget {
     final index = ref.watch(currentIndexProvider);
     return IconButton(
       icon: const Icon(Icons.skip_next),
-      onPressed: () =>
-          ref.read(musicPlayerProvider.notifier).playNext(musicList, index),
+      onPressed: () {
+        if (index != null) {
+          ref.read(musicPlayerProvider.notifier).playNext(musicList, index);
+        }
+      },
       tooltip: "Play Next",
     );
   }
@@ -105,8 +108,11 @@ class PlayPrevious extends ConsumerWidget {
     final index = ref.watch(currentIndexProvider);
     return IconButton(
       icon: const Icon(Icons.skip_previous),
-      onPressed: () =>
-          ref.read(musicPlayerProvider.notifier).playPrevious(musicList, index),
+      onPressed: () {
+        if (index != null) {
+          ref.read(musicPlayerProvider.notifier).playPrevious(musicList, index);
+        }
+      },
       tooltip: "Play Previous",
     );
   }

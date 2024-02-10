@@ -1,27 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:rinf/rinf.dart';
-import 'package:amai_music_player/messages/get_music_files.pb.dart'
-    as get_music_files;
-import 'package:amai_music_player/messages/get_metadata.pb.dart'
-    as get_metadata;
 import 'dart:typed_data';
 import 'audio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:amai_music_player/src/rust/api/metadata.dart';
+import 'package:amai_music_player/src/rust/api/utils.dart';
 
 part 'providers.g.dart'; // needed for build_runner & riverpod_generator
 
 @riverpod
-class CurrentIndex extends _$CurrentIndex {
-  @override
-  int build() => -1;
-
-  set(int index) => state = index;
-}
+int? currentIndex(CurrentIndexRef ref) => ref.watch(currentTrackProvider)?.id;
 
 @riverpod
 AudioPlayer trackPlayer(TrackPlayerRef ref) {
-  return AudioPlayer();
+  AudioPlayer audioPlayer = AudioPlayer();
+  audioPlayer.setVolume(0.5);
+
+  return audioPlayer;
 }
 
 @riverpod
@@ -35,7 +30,7 @@ class MusicPlayer extends _$MusicPlayer {
     ref.watch(trackPlayerProvider).resume();
   }
 
-  void shuffleTrack(List<String> musicList, int index) {
+  void shuffleTrack(List<Track> musicList, int index) {
     final randomIndex = getRandomIndex(musicList.length, index);
     play(musicList, randomIndex);
   }
@@ -47,16 +42,13 @@ class MusicPlayer extends _$MusicPlayer {
     isPlaying ? trackPlayer.pause() : trackPlayer.resume();
   }
 
-  void play(List<String> musicList, int index) {
+  void play(List<Track> musicList, int index) {
     final trackPlayer = ref.watch(trackPlayerProvider);
 
     if (trackPlayer.state == PlayerState.playing ||
         trackPlayer.state == PlayerState.paused) {
       trackPlayer.stop();
     }
-
-    // change the current index
-    ref.watch(currentIndexProvider.notifier).set(index);
 
     // change the current track
     ref.watch(currentTrackProvider.notifier).set(musicList[index]);
@@ -82,13 +74,13 @@ class MusicPlayer extends _$MusicPlayer {
     });
   }
 
-  void playNext(List<String> musicList, int index) {
+  void playNext(List<Track> musicList, int index) {
     if ((musicList.length - 1) != index && index >= 0) {
       play(musicList, index + 1); // increment the index by 1
     }
   }
 
-  void playPrevious(List<String> musicList, int index) {
+  void playPrevious(List<Track> musicList, int index) {
     if (index > 0) {
       play(musicList, index - 1); // decrement the index by 1
     }
@@ -114,9 +106,9 @@ class TrackDuration extends _$TrackDuration {
 @riverpod
 class CurrentTrack extends _$CurrentTrack {
   @override
-  String build() => '';
+  Track? build() => null;
 
-  void set(String track) => state = track;
+  void set(Track? track) => state = track;
 }
 
 @riverpod
@@ -160,12 +152,12 @@ class IsPlaying extends _$IsPlaying {
 }
 
 @riverpod
-List<String> searchedMusicList(SearchedMusicListRef ref) {
+List<Track> searchedMusicList(SearchedMusicListRef ref) {
   final query = ref.watch(searchInputProvider);
 
   return ref.watch(musicListProvider).when(
         data: (value) => value
-            .where((name) => name.toLowerCase().contains(query.toLowerCase()))
+            .where((track) => track.name.toLowerCase().contains(query.toLowerCase()))
             .toList(),
         loading: () => [],
         error: (_, __) => [],
@@ -173,21 +165,7 @@ List<String> searchedMusicList(SearchedMusicListRef ref) {
 }
 
 @riverpod
-Future<List<String>> musicList(MusicListRef ref) async {
-  const rustRequest = RustRequest(
-    resource: get_music_files.ID,
-    operation: RustOperation.Create,
-  );
-
-  final rustResponse = await requestToRust(rustRequest);
-  final responseMessage = get_music_files.CreateResponse.fromBuffer(
-    rustResponse.message!,
-  );
-
-  final searchInput = ref.watch(searchInputProvider);
-
-  return responseMessage.musicFiles;
-}
+Future<List<Track>> musicList(MusicListRef ref) async => await getMusicFiles();
 
 @Riverpod(keepAlive: true)
 class RepeatMusic extends _$RepeatMusic {
@@ -243,39 +221,10 @@ IconData themeModeIcon(ThemeModeIconRef ref) =>
         ? Icons.dark_mode
         : Icons.light_mode;
 
-class AudioMetadata {
-  AudioMetadata({
-    required this.art,
-    required this.title,
-  });
-  Uint8List art;
-  String title;
-}
-
 @riverpod
-class Metadata extends _$Metadata {
-  @override
-  Future<AudioMetadata> build() async {
-    final currentTrack = ref.watch(currentTrackProvider);
-
-    final rustRequestMessage = get_metadata.ReadRequest(
-      path: currentTrack,
-    );
-
-    final rustRequest = RustRequest(
-      resource: get_metadata.ID,
-      operation: RustOperation.Read,
-      message: rustRequestMessage.writeToBuffer(),
-    );
-
-    final rustResponse = await requestToRust(rustRequest);
-    final responseMessage = get_metadata.ReadResponse.fromBuffer(
-      rustResponse.blob!,
-    );
-
-    final art = Uint8List.fromList(responseMessage.art);
-    final title = responseMessage.title;
-
-    return AudioMetadata(art: art, title: title);
+Future<Metadata?> metadata(MetadataRef ref) async {
+  Track? currentTrack = ref.watch(currentTrackProvider);
+  if (currentTrack != null) {
+    return await getMetadata(path: currentTrack.path);
   }
 }
