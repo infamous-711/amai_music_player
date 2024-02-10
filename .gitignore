@@ -66,3 +66,5 @@ lib/providers.g.dart
 
 # Flutter-rust-bridge
 rust_builder/
+lib/src
+rust/src/frb_*
