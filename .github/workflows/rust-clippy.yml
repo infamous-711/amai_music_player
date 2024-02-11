@@ -47,7 +47,7 @@ jobs:
           channel: stable
 
       - name: Run `flutter_rust_bridge_codegen generate`
-        run: flutter_rust_bridge_codegen integrate && flutter_rust_bridge_codegen generate
+        run: flutter_rust_bridge_codegen generate
 
       - name: Run rust-clippy
         working-directory: ./rust
