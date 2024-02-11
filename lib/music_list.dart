@@ -9,6 +9,28 @@ class MusicList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: ListView.builder(
+          itemCount: ref.watch(searchedMusicListProvider).length,
+          itemBuilder: (_, tileIndex) => MusicTile(tileIndex: tileIndex),
+        ),
+      ),
+    );
+  }
+}
+
+class MusicTile extends ConsumerWidget {
+  final int tileIndex;
+  
+  const MusicTile({
+    super.key,   
+    required this.tileIndex,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final musicList = ref.watch(searchedMusicListProvider);
     final themeMode = ref.watch(currentThemeProvider);
     final selectedColor =
@@ -17,24 +39,16 @@ class MusicList extends ConsumerWidget {
         ? Theme.of(context).colorScheme.primary.withOpacity(0.5)
         : Theme.of(context).colorScheme.primary.withOpacity(0.6);
 
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: ListView.builder(
-          itemCount: musicList.length,
-          itemBuilder: (context, trackIndex) => ListTile(
-            title: Text(musicList[trackIndex].name),
-            onTap: () => ref
-                .read(musicPlayerProvider.notifier)
-                .play(musicList, trackIndex),
-            selected: musicList[trackIndex].id == ref.watch(currentIndexProvider),
-            selectedColor: selectedColor,
-            selectedTileColor: selectedTileColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-          ),
-        ),
+    return ListTile(
+      title: Text(musicList[tileIndex].name),
+      onTap: () => ref
+          .read(musicPlayerProvider.notifier)
+          .play(musicList, tileIndex),
+      selected: musicList[tileIndex].id == ref.watch(currentIndexProvider),
+      selectedColor: selectedColor,
+      selectedTileColor: selectedTileColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20.0),
       ),
     );
   }
