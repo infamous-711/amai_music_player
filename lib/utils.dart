@@ -38,7 +38,7 @@ class Debouncer {
   late VoidCallback action;
   Timer? _timer;
 
-  Debouncer({required int this.milliseconds});
+  Debouncer({required this.milliseconds});
 
   run(VoidCallback action) {
     if (null != _timer) {
