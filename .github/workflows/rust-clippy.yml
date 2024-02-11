@@ -46,6 +46,9 @@ jobs:
         with:
           channel: stable
 
+      - name: Integrate flutter_rust_bridge
+        run: flutter_rust_bridge_codegen integrate
+
       - name: Run `flutter_rust_bridge_codegen generate`
         run: flutter_rust_bridge_codegen generate
 
