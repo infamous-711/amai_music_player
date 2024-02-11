@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart' as path;
 import 'providers.dart';
-import 'utils.dart';
 
 class MusicList extends ConsumerWidget {
   const MusicList({

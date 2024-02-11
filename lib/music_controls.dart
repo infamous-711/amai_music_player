@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'providers.dart';
-import 'utils.dart';
 
 class MusicControls extends StatelessWidget {
   const MusicControls({

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'dart:typed_data';
 import 'audio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:amai_music_player/src/rust/api/metadata.dart';
