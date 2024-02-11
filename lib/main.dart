@@ -99,20 +99,18 @@ class AppBody extends ConsumerWidget {
       decoration: art,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 4.8, sigmaY: 4.8),
-        child: Container(
-          child: Column(
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    MusicList(),
-                    MetadataColumn(),
-                  ],
-                ),
+        child: const Column(
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  MusicList(),
+                  MetadataColumn(),
+                ],
               ),
-              MusicControls(),
-            ],
-          ),
+            ),
+            MusicControls(),
+          ],
         ),
       ),
     );
