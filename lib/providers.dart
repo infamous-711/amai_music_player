@@ -226,5 +226,7 @@ Future<Metadata?> metadata(MetadataRef ref) async {
   Track? currentTrack = ref.watch(currentTrackProvider);
   if (currentTrack != null) {
     return await getMetadata(path: currentTrack.path);
+  } else {
+    return null;
   }
 }

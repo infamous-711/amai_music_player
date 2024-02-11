@@ -89,6 +89,8 @@ class AppBody extends ConsumerWidget {
               fit: BoxFit.cover,
             ),
           );
+        } else {
+          return null;
         }
       },
       loading: () => null,
