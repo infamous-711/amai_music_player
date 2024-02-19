@@ -80,22 +80,22 @@ class AppBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     BoxDecoration? art = ref.watch(metadataProvider).when(
-      data: (value) {
-        if (value != null && value.art != null) {
-          return BoxDecoration(
-            image: DecorationImage(
-              image: MemoryImage(value.art!),
-              opacity: 0.2,
-              fit: BoxFit.cover,
-            ),
-          );
-        } else {
-          return null;
-        }
-      },
-      loading: () => null,
-      error: (_, __) => null,
-    );
+          data: (value) {
+            if (value != null && value.art != null) {
+              return BoxDecoration(
+                image: DecorationImage(
+                  image: MemoryImage(value.art!),
+                  opacity: 0.2,
+                  fit: BoxFit.cover,
+                ),
+              );
+            } else {
+              return null;
+            }
+          },
+          loading: () => null,
+          error: (_, __) => null,
+        );
 
     return Container(
       decoration: art,

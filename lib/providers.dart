@@ -156,7 +156,8 @@ List<Track> searchedMusicList(SearchedMusicListRef ref) {
 
   return ref.watch(musicListProvider).when(
         data: (value) => value
-            .where((track) => track.name.toLowerCase().contains(query.toLowerCase()))
+            .where((track) =>
+                track.name.toLowerCase().contains(query.toLowerCase()))
             .toList(),
         loading: () => [],
         error: (_, __) => [],

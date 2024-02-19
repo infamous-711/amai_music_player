@@ -23,9 +23,9 @@ class MusicList extends ConsumerWidget {
 
 class MusicTile extends ConsumerWidget {
   final int tileIndex;
-  
+
   const MusicTile({
-    super.key,   
+    super.key,
     required this.tileIndex,
   });
 
@@ -41,9 +41,8 @@ class MusicTile extends ConsumerWidget {
 
     return ListTile(
       title: Text(musicList[tileIndex].name),
-      onTap: () => ref
-          .read(musicPlayerProvider.notifier)
-          .play(musicList, tileIndex),
+      onTap: () =>
+          ref.read(musicPlayerProvider.notifier).play(musicList, tileIndex),
       selected: musicList[tileIndex].id == ref.watch(currentIndexProvider),
       selectedColor: selectedColor,
       selectedTileColor: selectedTileColor,
